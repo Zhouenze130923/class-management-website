@@ -1,9 +1,11 @@
 // Console Chat API - Simple message exchange
 // User sends messages via POST, AI responds via POST, Console polls via GET
 
+import { withRateLimit } from './_ratelimit.js';
+
 const msgStore = [];
 
-export default function handler(req, res) {
+function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -42,3 +44,5 @@ export default function handler(req, res) {
 
   return res.status(405).json({ error: 'Method not allowed' });
 }
+
+export default withRateLimit(handler, 60);

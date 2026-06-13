@@ -1,5 +1,10 @@
 // /api/auth.js — 教师账号注册/登录
 // ===== 修复：CORS 头必须在 Redis 检查之前设置 =====
+import { withRateLimit } from './_ratelimit.js';
+
+// 认证接口严格限制：每分钟5次
+const MAX_AUTH_REQ = 5;
+
 let kv = null;
 async function getKV() {
   if (kv) return kv;
@@ -13,7 +18,7 @@ async function getKV() {
   } catch(e) { return null; }
 }
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   // ⚠️ 必须先设置 CORS 头，再检查 Redis —— 否则浏览器会因无 CORS 头而拦截 500 响应
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -113,3 +118,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
+
+export default withRateLimit(handler, MAX_AUTH_REQ);

@@ -1,5 +1,7 @@
 // AI Browser Proxy - Parse, Extract, Summarize, Form Fill
-export default async function handler(req, res) {
+import { withRateLimit } from './_ratelimit.js';
+
+async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -213,3 +215,5 @@ function extractReadableText(html) {
   text = text.split('\n').filter(l => l.trim().length > 3).join('\n');
   return text;
 }
+
+export default withRateLimit(handler, 20);

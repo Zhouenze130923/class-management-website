@@ -1,6 +1,8 @@
+import { withRateLimit } from './_ratelimit.js';
+
 // AI Browser Search API
 // Supports Google, Bing, Baidu, DuckDuckGo
-export default async function handler(req, res) {
+async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -128,3 +130,5 @@ function strip(html) {
   if (!html) return '';
   return html.replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 300);
 }
+
+export default withRateLimit(handler, 20);
