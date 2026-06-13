@@ -23,6 +23,12 @@ window.addEventListener('load', function() {
     document.body.style.transition = 'opacity 0.5s';
 });
 
+// XSS 防护：HTML 转义
+function esc(str){
+  if(typeof str !== 'string') str = String(str);
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
 // 小组加分功能实现
 function initGroupPoints() {
     // 从localStorage加载小组数据
@@ -76,10 +82,10 @@ function renderGroupCards() {
         scoreCard.innerHTML = `
             <div class="card-header">
                 <div class="rank">${index + 1}</div>
-                <div class="card-title">${group.name}</div>
+                <div class="card-title">${esc(group.name)}</div>
             </div>
             <div class="card-body">
-                <div class="card-members">${group.members.join('、')}</div>
+                <div class="card-members">${esc(group.members.join('、'))}</div>
                 <div class="card-score">
                     <span class="score-label">本周得分：</span>
                     <span class="score-value">${group.weeklyScore}</span>

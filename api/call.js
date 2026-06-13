@@ -52,10 +52,22 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
       const body = req.body;
       const room = body._room;
-      if (!room) return res.status(400).json({ error: 'Missing room' });
+      if (!room || typeof room !== 'string') return res.status(400).json({ error: 'Missing room' });
+      // 🔒 限制 room 长度和字符
+      if (room.length > 32 || !/^[A-Za-z0-9_\-]+$/.test(room)) return res.status(400).json({ error: 'Invalid room' });
       if (body._clear) {
         await kv.del('call_' + room);
         return res.json({ ok: true });
+      }
+      // 🔒 清理 name 字段，只保留安全字符
+      if (body.name && typeof body.name === 'string') {
+        body.name = body.name.replace(/<[^>]*>/g, '').replace(/[<>"'&]/g, '').slice(0, 30);
+      }
+      if (body.className && typeof body.className === 'string') {
+        body.className = body.className.replace(/<[^>]*>/g, '').replace(/[<>"'&]/g, '').slice(0, 50);
+      }
+      if (body.teacherName && typeof body.teacherName === 'string') {
+        body.teacherName = body.teacherName.replace(/<[^>]*>/g, '').replace(/[<>"'&]/g, '').slice(0, 30);
       }
       body._ts = Date.now();
       await kv.set('call_' + room, body);

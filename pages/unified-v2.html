@@ -481,7 +481,7 @@ saveData();
 renderGrid();renderTable();renderStats();
 var t=document.createElement('div');t.className='toast';
 t.style.borderColor=delta>0?'#27ae60':'#e74c3c';
-t.innerHTML='✅ <strong>'+g.name+'</strong> '+dm+'分'+(reason?'（'+reason+'）':'');
+t.innerHTML='✅ <strong>'+esc(g.name)+'</strong> '+dm+'分'+(reason?'（'+esc(reason)+'）':'');
 document.body.appendChild(t);setTimeout(function(){document.body.removeChild(t)},2000);
 }
 
@@ -524,10 +524,16 @@ var rank=i+1,net=getNet(g);
 var rc=rank<=3?' rank-'+rank:'';
 h+='<div class="mb-item'+rc+'">';
 h+='<span class="mi-rank">'+rank+'</span>';
-h+='<span class="mi-name">'+g.name+'</span>';
+h+='<span class="mi-name">'+esc(g.name)+'</span>';
 h+='<span class="mi-val">'+net+'</span></div>';
 });
 mbList.innerHTML=h;
+}
+
+// ===== XSS 防护：HTML 转义 =====
+function esc(str){
+  if(typeof str !== 'string') str = String(str);
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
 }
 
 // ===== 渲染详细卡片 =====
@@ -539,7 +545,7 @@ data.groups.forEach(function(g,i){
 var net=nets[i];var sel=selectedGroups[i]||false;
 html+='<div class="sc-card'+(sel?' selected':'')+(nets.indexOf(net)<3?' rank-'+(nets.indexOf(net)+1):'')+'" data-gi="'+i+'">';
 html+='<div class="scr-r">#'+(nets.indexOf(net)+1)+'</div>';
-html+='<div class="scr-n">'+g.name+'</div>';
+html+='<div class="scr-n">'+esc(g.name)+'</div>';
 html+='<div class="scr-v">'+net+'</div>';
 html+='<div class="scr-b"><div class="scr-bf" style="width:'+(net/maxScore*100)+'%"></div></div>';
 html+='<div class="scr-ops">';
@@ -620,14 +626,14 @@ var all=[];
 data.noiseHistory.forEach(function(r){
 var val=r.levelNum!==undefined?r.levelNum:0;
 var dc=r.deduction||0;
-all.push({ts:r.time,type:'🔊 噪音',desc:r.level,pts:dc>0?'-'+dc:'0',ptsClass:dc>0?'deduct-cell':'',recorder:r.recorder});
+all.push({ts:r.time,type:'🔊 噪音',desc:esc(r.level),pts:dc>0?'-'+dc:'0',ptsClass:dc>0?'deduct-cell':'',recorder:esc(r.recorder)});
 });
 data.scoreHistory.forEach(function(r){
 var g=data.groups[r.gi];if(!g)return;
 var cls=r.delta>0?'bonus-cell':(r.delta<0?'deduct-cell':'');
 var dm=r.delta>0?'+'+r.delta:''+r.delta;
 var desc=(r.isSeat?'🪑 ':'')+(r.reason?r.reason:'');
-all.push({ts:r.ts,type:r.delta>0?'✅ 加分':'🔻 扣分',desc:g.name+(desc?' ('+desc+')':''),pts:dm,ptsClass:cls,recorder:''});
+all.push({ts:r.ts,type:r.delta>0?'✅ 加分':'🔻 扣分',desc:esc(g.name)+(desc?' ('+esc(desc)+')':''),pts:dm,ptsClass:cls,recorder:''});
 });
 all.sort(function(a,b){return a.ts>b.ts?-1:a.ts<b.ts?1:0;});
 var show=all.slice(0,100);

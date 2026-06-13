@@ -77,11 +77,28 @@ p{color:#6b7280;font-size:.75rem;margin-bottom:1rem}
 
 <script>
 // ===== 修复：改为相对路径，兼容子域名和主域名部署 =====
-// ===== 修复：改为相对路径，兼容子域名和主域名部署 =====
-// ===== 再修复：Vercel KV 未配置，改为纯客户端 localStorage 认证 =====
+// ===== 🔒 安全修复 =====
+// 1. HTML 转义防 XSS
+// 2. 密码 SHA-256 哈希，不存明文
+// 3. 每个账号独立存储（前缀 'acc:' + 手机号）
+// 4. 所有用户输入渲染都经过转义
 var API = '/api/call';
 var AUTH_API = '/api/auth';
-var ACCOUNTS_KEY = '***';  // 存储所有本地账号
+var ACC_PREFIX = 'acc:';  // 每个账号独立key，如 acc:138xxxx
+
+// HTML 转义：防止 XSS
+function esc(str){
+  if(typeof str !== 'string') str = String(str);
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+// 简单的 SHA-256 哈希（从 Web Crypto API）
+async function hashPw(pw){
+  var enc = new TextEncoder().encode(pw);
+  var buf = await crypto.subtle.digest('SHA-256', enc);
+  var arr = Array.from(new Uint8Array(buf));
+  return arr.map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+}
 
 function switchTab(t){
   document.getElementById('tabLogin').className = t==='login'?'on':'off';
@@ -90,17 +107,26 @@ function switchTab(t){
   document.getElementById('regForm').style.display = t==='reg'?'block':'none';
 }
 
-function getAccounts(){
-  var raw = localStorage.getItem(ACCOUNTS_KEY);
-  if(raw) try { return JSON.parse(raw); } catch(e) {}
-  return {};
+// 获取单个账号（返回 null 或账号对象）
+function getAccount(phone){
+  try {
+    var raw = localStorage.getItem(ACC_PREFIX + phone);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
 }
 
-function saveAccounts(acc){
-  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(acc));
+// 保存单个账号
+function saveAccount(phone, data){
+  localStorage.setItem(ACC_PREFIX + phone, JSON.stringify(data));
 }
 
-function doReg(){
+// 删除单个账号
+function removeAccount(phone){
+  localStorage.removeItem(ACC_PREFIX + phone);
+}
+
+// ===== 注册（带密码哈希） =====
+async function doReg(){
   var p=document.getElementById('rPhone').value.trim();
   var w=document.getElementById('rPw').value;
   var t=document.getElementById('rType').value;
@@ -110,27 +136,33 @@ function doReg(){
   if(w.length<4){document.getElementById('rErr').textContent='密码至少4位';return;}
   if(!n||!c){document.getElementById('rErr').textContent='请填写完整';return;}
 
-  var accounts = getAccounts();
-  if(accounts[p]){
+  // 过滤特殊字符防止 key 冲突
+  if(!/^[a-zA-Z0-9_@.\-]+$/.test(p)){
+    document.getElementById('rErr').textContent='用户名只能包含字母、数字、下划线、@、.、-';
+    return;
+  }
+
+  var existing = getAccount(p);
+  if(existing){
     document.getElementById('rErr').textContent='该用户名已注册';
     return;
   }
 
+  var pwHash = await hashPw(w);
   var teacherCode = 'TCH' + Math.random().toString(36).slice(2, 7).toUpperCase();
   var teacherData = {
     phone: p,
-    password: w,
+    pwHash: pwHash,  // 🔒 不存明文密码
     teacherCode: teacherCode,
     teacherName: n,
     teacherType: t,
     classes: [{ id: Date.now() + 'a', name: c, teacherType: t }]
   };
 
-  // 保存账号到本地
-  accounts[p] = teacherData;
-  saveAccounts(accounts);
+  // 每个账号独立存储
+  saveAccount(p, teacherData);
 
-  // 设置当前登录用户
+  // 当前登录 session
   localStorage.setItem('***', teacherCode);
   localStorage.setItem('***', JSON.stringify({
     teacherCode: teacherCode,
@@ -142,18 +174,20 @@ function doReg(){
   location.reload();
 }
 
-function doLogin(){
+// ===== 登录（验证密码哈希） =====
+async function doLogin(){
   var p=document.getElementById('lPhone').value.trim();
   var w=document.getElementById('lPw').value;
   if(!p||!w){document.getElementById('lErr').textContent='请填写完整';return;}
 
-  var accounts = getAccounts();
-  var userData = accounts[p];
+  var userData = getAccount(p);
   if(!userData){
     document.getElementById('lErr').textContent='账号不存在';
     return;
   }
-  if(userData.password !== w){
+
+  var pwHash = await hashPw(w);
+  if(userData.pwHash !== pwHash){
     document.getElementById('lErr').textContent='密码错误';
     return;
   }
@@ -210,16 +244,23 @@ function showConnect(){
   el.classList.toggle('hidden');
 }
 
+// ===== 通过教师码连接（扫描独立账号） =====
 function doConnect(){
   var code=document.getElementById('connectCode').value.trim().toUpperCase();
   if(!code){document.getElementById('connectErr').textContent='输入教师码';return;}
 
-  var accounts = getAccounts();
+  // 扫描所有 acc:* 前缀的 key
   var found = null;
-  for(var k in accounts){
-    if(accounts[k].teacherCode === code){
-      found = accounts[k];
-      break;
+  for(var i=0; i<localStorage.length; i++){
+    var key = localStorage.key(i);
+    if(key && key.startsWith(ACC_PREFIX)){
+      try {
+        var data = JSON.parse(localStorage.getItem(key));
+        if(data && data.teacherCode === code){
+          found = data;
+          break;
+        }
+      } catch(e){}
     }
   }
   if(!found){
@@ -256,7 +297,7 @@ if(data&&data.teacherCode){
     data.classes.forEach(function(c){
       var r=c.teacherType||data.teacherType||'班主任';
       h+='<div style="background:#141b2d;border:1px solid #1e2a3a;border-radius:10px;padding:.4rem .6rem;margin:.2rem 0;font-size:.8rem">';
-      h+=c.name+' <span style="font-size:.6rem;color:#6b7280">('+r+')</span>';
+      h+=esc(c.name)+' <span style="font-size:.6rem;color:#6b7280">('+esc(r)+')</span>';
       h+=' <a href="unified-v2.html" style="color:#a78bfa;font-size:.6rem;text-decoration:none;float:right">📊 管理</a>';
       h+='</div>';
     });
