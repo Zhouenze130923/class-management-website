@@ -11,6 +11,16 @@ export default async function handler(req, res) {
   const vu = validateUrl(decodeURIComponent(url));
   if (!vu) return res.status(400).json({ error: 'Invalid URL' });
 
+  // 🔒 SSRF 防护：禁止访问内部/私有 IP
+  try {
+    const p = new URL(vu);
+    if (!['http:','https:'].includes(p.protocol)) return res.status(400).json({ error: 'Only http/https allowed' });
+    const host = p.hostname.toLowerCase();
+    const blockedIPs = ['127.0.0.1','::1','0.0.0.0','localhost','10.','172.16.','172.17.','172.18.','172.19.','172.20.','172.21.','172.22.','172.23.','172.24.','172.25.','172.26.','172.27.','172.28.','172.29.','172.30.','172.31.','192.168.','169.254.','fc','fd','fe80'];
+    if (blockedIPs.some(p => host === p || host.startsWith(p))) return res.status(403).json({ error: 'Forbidden URL' });
+    if (host.endsWith('.local') || host.endsWith('.internal')) return res.status(403).json({ error: 'Forbidden URL' });
+  } catch(e) { return res.status(400).json({ error: 'Invalid URL' }); }
+
   try {
     const html = await fetchPage(vu);
     if (action === 'extract') return res.json(extractContent(html, vu));
