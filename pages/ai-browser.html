@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🤖 Zero-Bot AI 浏览器</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,sans-serif;background:#0a0e17;color:#e0e6f0;display:flex;flex-direction:column}
+.top{background:linear-gradient(135deg,#141b2d,#1a2332);padding:.25rem .5rem;display:flex;align-items:center;gap:.3rem;border-bottom:1px solid #1e2a3a;flex-shrink:0;flex-wrap:wrap}
+.top .logo{font-size:.75rem;font-weight:800;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap}
+.tnb{display:flex;gap:.1rem}
+.tnb button{width:22px;height:22px;border-radius:4px;border:none;background:#1e2a3a;color:#8899bb;cursor:pointer;font-size:.55rem;display:flex;align-items:center;justify-content:center}
+.tnb button:hover{background:#2a3a4a}
+.tnb button:disabled{opacity:.3}
+.tur{flex:1;display:flex;gap:.15rem;min-width:120px}
+.tur input{flex:1;padding:.2rem .35rem;border-radius:6px;border:1.5px solid #1e2a3a;background:#0d1520;color:#e0e6f0;font-size:.65rem;outline:none;min-width:0}
+.tur input:focus{border-color:#60a5fa}
+.tur button{padding:.2rem .4rem;border-radius:6px;border:none;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;font-size:.55rem;font-weight:600;cursor:pointer;white-space:nowrap}
+.tur button:hover{opacity:.9}
+.tst{font-size:.5rem;color:#22c55e;background:#0d1520;padding:.05rem .3rem;border-radius:30px;border:1px solid #1e2a3a;display:flex;align-items:center;gap:.12rem;white-space:nowrap}
+.tst .dot{width:4px;height:4px;border-radius:50%;background:#22c55e;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.mw{flex:1;display:flex;min-height:0}
+.bf{flex:1;display:flex;flex-direction:column;min-width:0;position:relative;background:#0d1520}
+.bf iframe{flex:1;width:100%;border:none;background:#fff}
+.ol{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(13,21,32,.88);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.3rem;z-index:10;transition:opacity .3s;pointer-events:none}
+.ol.h{opacity:0}
+.sp{width:24px;height:24px;border:3px solid #1e2a3a;border-top-color:#60a5fa;border-radius:50%;animation:s .8s linear infinite}
+@keyframes s{to{transform:rotate(360deg)}}
+.olt{font-size:.55rem;color:#8899bb}
+.pn{flex:0 0 340px;display:flex;flex-direction:column;background:#141b2d;border-left:1px solid #1e2a3a;min-height:0}
+.pt{display:flex;flex-shrink:0;border-bottom:1px solid #1e2a3a;overflow-x:auto}
+.ptb{padding:.25rem .35rem;font-size:.52rem;font-weight:600;cursor:pointer;color:#556;background:transparent;border:none;flex-shrink:0;border-bottom:2px solid transparent;transition:all .08s;white-space:nowrap}
+.ptb.a{color:#60a5fa;border-bottom-color:#60a5fa;background:rgba(96,165,250,.05)}
+.pc{display:none;flex-direction:column;min-height:0;flex:1}
+.pc.a{display:flex}
+.ch{flex:1;overflow-y:auto;padding:.25rem;display:flex;flex-direction:column;gap:.15rem}
+.ch::-webkit-scrollbar{width:3px}
+.ch::-webkit-scrollbar-thumb{background:#1e2a3a;border-radius:3px}
+.msg{font-size:.55rem;line-height:1.4;padding:.18rem .3rem;border-radius:6px;max-width:98%;animation:fi .15s}
+@keyframes fi{from{opacity:0;transform:translateY(2px)}to{opacity:1;transform:translateY(0)}}
+.msg.u{background:#1e2a3a;color:#e0e6f0;align-self:flex-end;border-bottom-right-radius:2px}
+.msg.b{background:rgba(59,130,246,.08);color:#c8d8f0;align-self:flex-start;border-left:2px solid #3b82f6}
+.msg.s{background:rgba(16,185,129,.06);color:#6ee7b7;align-self:center;border-radius:30px;font-size:.48rem;padding:.06rem .35rem}
+.msg .ok{color:#22c55e}.msg .er{color:#ef4444}.msg .ac{color:#f59e0b;font-weight:600}
+.cr{flex-shrink:0;padding:.25rem;border-top:1px solid #1e2a3a;display:flex;gap:.15rem}
+.cr input{flex:1;padding:.2rem .35rem;border-radius:6px;border:1.5px solid #1e2a3a;background:#0d1520;color:#e0e6f0;font-size:.55rem;outline:none}
+.cr input:focus{border-color:#60a5fa}
+.cr button{padding:.2rem .4rem;border-radius:6px;border:none;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;font-size:.5rem;font-weight:600;cursor:pointer}
+
+.el{flex:1;overflow-y:auto;padding:.2rem .25rem}
+.el::-webkit-scrollbar{width:3px}
+.el::-webkit-scrollbar-thumb{background:#1e2a3a;border-radius:3px}
+.eg{margin-bottom:.25rem}
+.eg .egt{font-size:.5rem;font-weight:700;color:#8899bb;margin-bottom:.05rem;border-bottom:1px solid #1e2a3a;padding:.03rem 0}
+.ei{display:flex;align-items:center;gap:.15rem;padding:.12rem .2rem;border-radius:4px;background:#0d1520;border:1px solid #1e2a3a;margin-bottom:.06rem;font-size:.48rem;cursor:pointer;transition:all .06s}
+.ei:hover{border-color:#60a5fa;background:#111a28}
+.ei .en{width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.38rem;font-weight:700;flex-shrink:0}
+.ei .et{flex:1;color:#8899bb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ei .ey{font-size:.38rem;color:#6b7280;flex-shrink:0;padding:.01rem .12rem;border-radius:3px;background:#1e2a3a}
+
+.tx{flex:1;overflow-y:auto;padding:.2rem .3rem;font-size:.52rem;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.tx::-webkit-scrollbar{width:3px}
+.tx::-webkit-scrollbar-thumb{background:#1e2a3a;border-radius:3px}
+.tx h3{font-size:.6rem;color:#60a5fa;margin:.2rem 0 .1rem}
+.tx .stat{display:flex;gap:.4rem;font-size:.45rem;color:#6b7280;margin-bottom:.15rem}
+.tx .kw{display:flex;gap:.15rem;flex-wrap:wrap;margin:.1rem 0}
+.tx .kw span{background:rgba(96,165,250,.12);color:#60a5fa;padding:.03rem .2rem;border-radius:4px;font-size:.48rem}
+.tx .sum{color:#c8d8f0;line-height:1.7}
+.tx .full{color:#8899bb;font-size:.48rem}
+
+.fm{flex:1;overflow-y:auto;padding:.2rem .25rem}
+.fm::-webkit-scrollbar{width:3px}
+.fm::-webkit-scrollbar-thumb{background:#1e2a3a;border-radius:3px}
+.fi{background:#0d1520;border:1px solid #1e2a3a;border-radius:5px;padding:.15rem .2rem;margin-bottom:.12rem;font-size:.48rem}
+.fi .fn{font-weight:600;color:#8899bb;display:flex;justify-content:space-between}
+.fi .fn .ft{font-size:.4rem;color:#6b7280;background:#1e2a3a;padding:.02rem .12rem;border-radius:3px}
+.fi .fv{color:#e0e6f0;margin-top:.05rem;word-break:break-all}
+.fi .fv input,.fi .fv select{width:100%;background:#1e2a3a;border:1px solid #2a3a4a;border-radius:4px;padding:.1rem .2rem;color:#e0e6f0;font-size:.5rem;outline:none;margin-top:.05rem}
+.fi .fv select option{background:#0d1520}
+
+.fl{flex:1;overflow-y:auto;padding:.2rem .25rem}
+.fl::-webkit-scrollbar{width:3px}
+.fl::-webkit-scrollbar-thumb{background:#1e2a3a;border-radius:3px}
+.fli{display:flex;align-items:center;gap:.2rem;padding:.15rem .2rem;border-radius:5px;background:#0d1520;border:1px solid #1e2a3a;margin-bottom:.1rem;font-size:.5rem}
+.fli .fi-icon{width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:.38rem;color:#fff;flex-shrink:0}
+.fli .fi-text{flex:1;color:#8899bb}
+.fli .fi-stat{font-size:.42rem;padding:.02rem .2rem;border-radius:20px;flex-shrink:0}
+.fli .fi-stat.d{background:rgba(34,197,94,.12);color:#22c55e}
+.fli .fi-stat.r{background:rgba(245,158,11,.12);color:#f59e0b}
+.fli .fi-stat.e{background:rgba(239,68,68,.12);color:#ef4444}
+
+.sb{flex:1;overflow-y:auto;padding:.25rem}
+.sb::-webkit-scrollbar{width:3px}
+.sb::-webkit-scrollbar-thumb{background:#1e2a3a;border-radius:3px}
+.sr{padding:.2rem .25rem;border-radius:5px;background:#0d1520;border:1px solid #1e2a3a;margin-bottom:.15rem;cursor:pointer;transition:all .06s}
+.sr:hover{border-color:#60a5fa}
+.sr .st{font-size:.55rem;font-weight:600;color:#60a5fa}
+.sr .su{font-size:.42rem;color:#6b7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sr .sd{font-size:.48rem;color:#8899bb}
+
+.st{flex:1;overflow-y:auto;padding:.3rem}
+.st::-webkit-scrollbar{width:3px}
+.st::-webkit-scrollbar-thumb{background:#1e2a3a;border-radius:3px}
+.sg{margin-bottom:.35rem}
+.sg .sgt{font-size:.52rem;font-weight:700;color:#8899bb;border-bottom:1px solid #1e2a3a;padding-bottom:.03rem;margin-bottom:.08rem}
+.sr2{display:flex;justify-content:space-between;align-items:center;padding:.1rem 0;font-size:.5rem}
+.sr2 label{color:#8899bb}
+.sr2 input[type=text],.sr2 select{background:#0d1520;border:1.5px solid #1e2a3a;border-radius:4px;padding:.08rem .2rem;color:#e0e6f0;font-size:.5rem;outline:none;width:80px}
+.sr2 input:focus{border-color:#60a5fa}
+
+.sbar{flex-shrink:0;background:#0d1520;border-top:1px solid #1e2a3a;padding:.08rem .35rem;display:flex;justify-content:space-between;font-size:.45rem;color:#6b7280}
+.sl,.sr{display:flex;gap:.3rem}
+@media(max-width:768px){.pn{flex:0 0 280px}}
+@media(max-width:500px){.pn{flex:0 0 200px}}
+</style>
+</head>
+<body>
+
+<div class="top">
+<div class="logo">🤖 Zero-Bot</div>
+<div class="tnb"><button id="bb" disabled>◀</button><button id="fb" disabled>▶</button><button id="rb">⟳</button></div>
+<div class="tur">
+<input type="text" id="urlIn" placeholder="网址..." value="https://www.baidu.com">
+<button id="go">前往</button>
+<button id="parseBtn" style="background:linear-gradient(135deg,#059669,#10b981)">📋 解析</button>
+</div>
+<div class="tst"><span class="dot"></span>AI 远程可控</div>
+</div>
+
+<div class="mw">
+<div class="bf">
+<iframe id="fr" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"></iframe>
+<div class="ol h" id="ol"><div class="sp"></div><div class="olt" id="olt">加载中...</div></div>
+</div>
+
+<div class="pn">
+<div class="pt">
+<button class="ptb a" data-t="elems">🖱️</button>
+<button class="ptb" data-t="content">📄</button>
+<button class="ptb" data-t="form">📝</button>
+<button class="ptb" data-t="flow">🔄</button>
+<button class="ptb" data-t="chat">💬</button>
+<button class="ptb" data-t="search">🔍</button>
+<button class="ptb" data-t="st">⚙️</button>
+</div>
+
+<!-- 可交互 -->
+<div class="pc a" id="t-elems" style="display:flex"><div class="el" id="elemList"><div style="font-size:.5rem;color:#6b7280;text-align:center;padding:.4rem">点「解析」或导航后自动分析</div></div></div>
+
+<!-- 内容 -->
+<div class="pc" id="t-content" style="display:flex">
+<div class="tx" id="contentBox">
+<h3>📄 页面内容</h3>
+<div class="sr2" style="margin-bottom:.2rem">
+<button id="extractBtn" class="tur button" style="padding:.15rem .3rem;font-size:.48rem;border-radius:5px;border:none;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;font-weight:600;cursor:pointer">📋 提取正文</button>
+<button id="summarizeBtn" class="tur button" style="padding:.15rem .3rem;font-size:.48rem;border-radius:5px;border:none;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-weight:600;cursor:pointer">📝 总结文献</button>
+</div>
+<div id="contentDisplay" style="color:#6b7280;font-size:.5rem;text-align:center;padding:.3rem">点击「提取正文」获取页面内容<br>点击「总结文献」自动生成摘要</div>
+</div></div>
+
+<!-- 填表 -->
+<div class="pc" id="t-form" style="display:flex">
+<div class="fm" id="formBox">
+<div class="sr2" style="margin-bottom:.2rem">
+<button id="scanFormBtn" class="tur button" style="padding:.15rem .3rem;font-size:.48rem;border-radius:5px;border:none;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;font-weight:600;cursor:pointer">🔍 扫描表单</button>
+</div>
+<div id="formDisplay" style="color:#6b7280;font-size:.5rem;text-align:center;padding:.3rem">点击「扫描表单」查看页面可填字段</div>
+</div></div>
+
+<!-- 流程 -->
+<div class="pc" id="t-flow" style="display:flex"><div class="fl" id="flowList"><div style="font-size:.5rem;color:#6b7280;text-align:center;padding:.4rem">操作流程记录</div></div></div>
+
+<!-- 对话 -->
+<div class="pc" id="t-chat" style="display:flex;flex-direction:column">
+<div class="ch" id="chatBox">
+<div class="msg s">🤖 Zero-Bot 就绪</div>
+<div class="msg b">我可以：<br>• 导航到任意网站<br>• 解析可交互元素<br>• 提取正文/总结文献<br>• 扫描并填写表单<br>• 你在后台发指令，我在这执行</div>
+</div>
+<div class="cr"><input type="text" id="cmdIn" placeholder="指令..." value=""><button id="cmdBtn">发送</button></div>
+</div>
+
+<!-- 搜索 -->
+<div class="pc" id="t-search" style="display:flex">
+<div style="flex:1;overflow-y:auto;padding:.25rem">
+<div style="display:flex;gap:.15rem;margin-bottom:.2rem">
+<input type="text" id="searchQ" placeholder="搜索..." style="flex:1;background:#0d1520;border:1.5px solid #1e2a3a;border-radius:5px;padding:.12rem .25rem;color:#e0e6f0;font-size:.5rem;outline:none">
+<button id="searchGo" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);border:none;border-radius:5px;color:#fff;padding:.12rem .3rem;font-size:.48rem;cursor:pointer">Go</button>
+</div>
+<div id="searchResults"><div style="font-size:.48rem;color:#6b7280;text-align:center;padding:.3rem">输入搜索词</div></div>
+</div></div>
+
+<!-- 设置 -->
+<div class="pc" id="t-st" style="display:flex">
+<div class="st">
+<div class="sg"><div class="sgt">🌐 浏览器</div>
+<div class="sr2"><label>主页</label><input type="text" id="homePage" value="https://www.baidu.com"></div>
+<div class="sr2"><label>搜索引擎</label><select id="searchEngine"><option value="duckduckgo">DuckDuckGo</option><option value="baidu" selected>百度</option></select></div>
+<div class="sr2"><label>自动解析</label><input type="checkbox" id="autoParse" checked></div>
+</div>
+<div class="sg"><div class="sgt">⌨️ 快捷键</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:.05rem;font-size:.45rem">
+<kbd style="background:#1e2a3a;border-radius:2px;padding:.02rem .15rem;color:#60a5fa;font-family:monospace">Ctrl+L</kbd><span style="color:#6b7280">地址栏</span>
+<kbd style="background:#1e2a3a;border-radius:2px;padding:.02rem .15rem;color:#60a5fa;font-family:monospace">Ctrl+K</kbd><span style="color:#6b7280">聊天</span>
+<kbd style="background:#1e2a3a;border-radius:2px;padding:.02rem .15rem;color:#60a5fa;font-family:monospace">Esc</kbd><span style="color:#6b7280">取消加载</span>
+</div></div>
+</div></div>
+</div></div>
+
+<div class="sbar">
+<div class="sl"><span id="status">🟢 就绪</span></div>
+<div class="sr"><span id="pgInfo">-</span><span id="elemCount">0</span><span id="timeD"></span></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var fr=document.getElementById('fr'),urlIn=document.getElementById('urlIn'),go=document.getElementById('go');
+var bb=document.getElementById('bb'),fb=document.getElementById('fb'),rb=document.getElementById('rb');
+var ol=document.getElementById('ol'),olt=document.getElementById('olt');
+var chatBox=document.getElementById('chatBox'),cmdIn=document.getElementById('cmdIn'),cmdBtn=document.getElementById('cmdBtn');
+var elemList=document.getElementById('elemList'),contentBox=document.getElementById('contentBox'),contentDisplay=document.getElementById('contentDisplay');
+var formBox=document.getElementById('formBox'),formDisplay=document.getElementById('formDisplay'),flowList=document.getElementById('flowList');
+var statusEl=document.getElementById('status'),pgInfo=document.getElementById('pgInfo'),elemCount=document.getElementById('elemCount'),timeD=document.getElementById('timeD');
+var hist=[],hi=-1,curUrl='https://www.baidu.com',pageElems=[],pageText='',summaryData=null,formFields=[];
+
+function cl(){var d=new Date();timeD.textContent=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+':'+('0'+d.getSeconds()).slice(-2)}
+setInterval(cl,1000);cl();
+
+function ss(s){statusEl.textContent=s;}
+function so(t){ol.classList.remove('h');olt.textContent=t;}
+function sh(){ol.classList.add('h');}
+
+function am(type,html){var m=document.createElement('div');m.className='msg '+(type||'s');m.innerHTML=html;chatBox.appendChild(m);chatBox.scrollTop=chatBox.scrollHeight;}
+function af(text,status){
+var item=document.createElement('div');item.className='fli';
+var badge={done:'d',running:'r',error:'e'}[status]||'d';
+var bt={done:'✅',running:'▶',error:'❌'}[status]||'✅';
+item.innerHTML='<div class="fi-icon">🤖</div><div class="fi-text">'+text+'</div><div class="fi-stat '+badge+'">'+bt+'</div>';
+flowList.insertBefore(item,flowList.firstChild);
+}
+
+function nav(url){
+if(!url||url==='about:blank')url=document.getElementById('homePage').value||'https://www.baidu.com';
+if(!url.match(/^https?:\/\//i))url='https://'+url;
+curUrl=url;so('🌐 加载 '+url);ss('🌐 加载中');fr.src=url;urlIn.value=url;
+if(hi<0||hist[hi]!==url){hist=hist.slice(0,hi+1);hist.push(url);hi=hist.length-1;}updNav();
+}
+function updNav(){bb.disabled=hi<=0;fb.disabled=hi>=hist.length-1;}
+
+fr.onload=function(){sh();ss('✅');try{pgInfo.textContent=fr.contentDocument.title||''}catch(e){}if(document.getElementById('autoParse').checked)parsePage();};
+fr.onerror=function(){sh();ss('❌');};
+
+go.onclick=function(){nav(urlIn.value);};
+urlIn.onkeydown=function(e){if(e.key==='Enter')go.click();};
+bb.onclick=function(){if(hi>0){hi--;nav(hist[hi]);}};
+fb.onclick=function(){if(hi<hist.length-1){hi++;nav(hist[hi]);}};
+rb.onclick=function(){nav(curUrl);};
+
+function parsePage(){
+var u=urlIn.value.trim();if(!u.match(/^https?:\/\//i))u='https://'+u;
+so('🔍 解析中...');ss('🔍 解析');
+fetch('/api/browser-proxy?url='+encodeURIComponent(u)+'&action=parse').then(function(r){return r.json()}).then(function(d){
+sh();pageElems=d.elements||[];elemCount.textContent=pageElems.length+' 个';
+var links=pageElems.filter(function(e){return e.type==='link';});
+var inputs=pageElems.filter(function(e){return e.type==='input';});
+var btns=pageElems.filter(function(e){return e.type==='button';});
+var h='';
+if(links.length){h+='<div class="eg"><div class="egt">🔗 链接 ('+links.length+')</div>';links.forEach(function(e,i){h+='<div class="ei" data-href="'+(e.href||'')+'"><span class="en">'+(pageElems.indexOf(e)+1)+'</span><span class="et">'+esc(e.text)+'</span><span class="ey">链接</span></div>';});h+='</div>';}
+if(btns.length){h+='<div class="eg"><div class="egt">🔘 按钮 ('+btns.length+')</div>';btns.forEach(function(e){h+='<div class="ei"><span class="en">'+(pageElems.indexOf(e)+1)+'</span><span class="et">'+esc(e.text)+'</span><span class="ey">按钮</span></div>';});h+='</div>';}
+if(inputs.length){h+='<div class="eg"><div class="egt">📝 表单 ('+inputs.length+')</div>';inputs.forEach(function(e){h+='<div class="ei"><span class="en">'+(pageElems.indexOf(e)+1)+'</span><span class="et">'+esc(e.name)+'</span><span class="ey">'+e.inputType+'</span></div>';});h+='</div>';}
+if(!h)h='<div style="font-size:.5rem;color:#6b7280;text-align:center;padding:.4rem">未找到可交互元素</div>';
+elemList.innerHTML=h;
+elemList.querySelectorAll('.ei').forEach(function(el){el.onclick=function(){var hh=this.getAttribute('data-href');if(hh){nav(hh);am('s','🖱️ 点击: '+esc(this.querySelector('.et').textContent));af('点击: '+esc(this.querySelector('.et').textContent),'done');}};});
+ss('✅ 解析完成');af('解析元素 ('+pageElems.length+' 个)','done');
+}).catch(function(){sh();elemList.innerHTML='<div style="font-size:.5rem;color:#ef4444;text-align:center;padding:.4rem">解析失败</div>';ss('❌ 解析失败');});
+}
+
+document.getElementById('parseBtn').onclick=parsePage;
+
+// ===== 内容提取 =====
+function extractPage(){
+var u=urlIn.value.trim();if(!u.match(/^https?:\/\//i))u='https://'+u;
+so('📋 提取正文...');ss('📋 提取');
+fetch('/api/browser-proxy?url='+encodeURIComponent(u)+'&action=extract').then(function(r){return r.json()}).then(function(d){
+sh();pageText=d.text||'';
+var html='<h3>📄 '+esc(d.title)+'</h3><div class="stat"><span>📏 '+d.length+' 字</span><span>🔗 <a href="'+esc(d.url)+'" target="_blank" style="color:#60a5fa">原文</a></span></div><div class="full">'+esc(pageText.substring(0,5000))+'</div>';
+contentDisplay.innerHTML=html;
+ss('✅ 提取完成');af('提取正文 ('+d.length+' 字)','done');
+}).catch(function(){sh();contentDisplay.innerHTML='<div style="color:#ef4444;font-size:.5rem;text-align:center;padding:.3rem">提取失败</div>';ss('❌');});
+}
+
+function summarizePage(){
+var u=urlIn.value.trim();if(!u.match(/^https?:\/\//i))u='https://'+u;
+so('📝 总结文献...');ss('📝 总结');
+fetch('/api/browser-proxy?url='+encodeURIComponent(u)+'&action=summarize').then(function(r){return r.json()}).then(function(d){
+sh();
+var h='<h3>📝 '+esc(d.title)+'</h3>';
+h+='<div class="stat"><span>📏 '+d.length+' 字</span><span>📄 '+d.sentenceCount+' 句</span><span>🔗 <a href="'+esc(d.url)+'" target="_blank" style="color:#60a5fa">原文</a></span></div>';
+if(d.keywords&&d.keywords.length){h+='<div class="kw">';d.keywords.forEach(function(kw){h+='<span>#'+esc(kw)+'</span>';});h+='</div>';}
+h+='<div class="sum">'+esc(d.summary)+'</div>';
+contentDisplay.innerHTML=h;
+ss('✅ 总结完成');af('总结文献 ('+d.keywords.slice(0,3).join(',')+')','done');
+}).catch(function(){sh();contentDisplay.innerHTML='<div style="color:#ef4444;font-size:.5rem;text-align:center;padding:.3rem">总结失败</div>';ss('❌');});
+}
+
+document.getElementById('extractBtn').onclick=extractPage;
+document.getElementById('summarizeBtn').onclick=summarizePage;
+
+// ===== 表单扫描 =====
+function scanForm(){
+var u=urlIn.value.trim();if(!u.match(/^https?:\/\//i))u='https://'+u;
+so('🔍 扫描表单...');ss('🔍 扫描');
+fetch('/api/browser-proxy?url='+encodeURIComponent(u)+'&action=fillform').then(function(r){return r.json()}).then(function(d){
+sh();formFields=[];
+if(!d.forms||!d.forms.length){formDisplay.innerHTML='<div style="color:#6b7280;font-size:.5rem;text-align:center;padding:.3rem">未找到表单字段</div>';ss('✅');return;}
+var h='<div style="font-size:.5rem;color:#60a5fa;margin-bottom:.2rem">共 '+d.totalFields+' 个字段</div>';
+d.forms.forEach(function(f){
+f.fields.forEach(function(fd){
+formFields.push(fd);
+h+='<div class="fi"><div class="fn"><span>'+esc(fd.name)+'</span><span class="ft">'+esc(fd.type)+'</span></div>';
+if(fd.type==='select'&&fd.options){
+h+='<div class="fv"><select data-name="'+esc(fd.name)+'">';
+fd.options.forEach(function(o){h+='<option value="'+esc(o.value)+'">'+esc(o.text)+'</option>';});
+h+='</select></div>';
+}else if(fd.type==='textarea'){
+h+='<div class="fv"><textarea data-name="'+esc(fd.name)+'" placeholder="'+esc(fd.placeholder)+'" style="width:100%;background:#1e2a3a;border:1px solid #2a3a4a;border-radius:4px;padding:.1rem .2rem;color:#e0e6f0;font-size:.5rem;outline:none;resize:vertical;min-height:30px"></textarea></div>';
+}else{
+h+='<div class="fv"><input type="text" data-name="'+esc(fd.name)+'" placeholder="'+esc(fd.placeholder)+'" value="'+esc(fd.value)+'"></div>';
+}
+h+='</div>';
+});
+});
+formDisplay.innerHTML=h;
+ss('✅ 扫描完成');af('扫描表单 ('+d.totalFields+' 个字段)','done');
+}).catch(function(){sh();formDisplay.innerHTML='<div style="color:#ef4444;font-size:.5rem;text-align:center;padding:.3rem">扫描失败</div>';ss('❌');});
+}
+
+document.getElementById('scanFormBtn').onclick=scanForm;
+
+// ===== 搜索 =====
+function aiSearch(q){
+if(!q)return;so('🔍 搜索 '+q);ss('🔍 搜索');
+fetch('/api/search?q='+encodeURIComponent(q)+'&count=8').then(function(r){return r.json()}).then(function(d){
+sh();
+var box=document.getElementById('searchResults');
+if(d.results&&d.results.length){
+var h='<div style="font-size:.5rem;font-weight:600;color:#60a5fa;margin-bottom:.1rem">结果</div>';
+d.results.forEach(function(r,i){if(!r.url)return;h+='<div class="sr" data-url="'+r.url+'"><div class="st">'+(i+1)+'. '+esc(r.title)+'</div><div class="su">'+esc(r.url)+'</div>'+(r.description?'<div class="sd">'+esc(r.description)+'</div>':'')+'</div>';});
+box.innerHTML=h;
+box.querySelectorAll('.sr').forEach(function(el){el.onclick=function(){nav(this.getAttribute('data-url'));};});
+ss('✅ 搜索完成');am('b','🔍 搜索 "'+q+'" 找到 '+d.results.length+' 条');
+}else{box.innerHTML='<div style="font-size:.48rem;color:#6b7280;text-align:center;padding:.3rem">无结果</div>';ss('❌');}
+}).catch(function(){sh();ss('❌');});
+}
+
+document.getElementById('searchGo').onclick=function(){var q=document.getElementById('searchQ').value.trim();if(q)aiSearch(q);};
+document.getElementById('searchQ').onkeydown=function(e){if(e.key==='Enter')document.getElementById('searchGo').click();};
+
+// ===== 聊天指令 =====
+function processCmd(cmd){
+cmd=cmd.trim();if(!cmd)return;
+am('u',cmd);cmdIn.value='';
+var c=cmd.toLowerCase();
+if(c.startsWith('搜索')||c.startsWith('搜一下')||c.startsWith('查一下')){var q=c.replace(/^(搜索|搜一下|查一下)\s*/,'');if(q)aiSearch(q);return;}
+if(c.startsWith('打开')||c.startsWith('访问')||c.startsWith('去')){var u=c.replace(/^(打开|访问|去)\s*/,'');if(u)nav(u);return;}
+if(c.match(/^点击\s*(\d+)/)){var m=c.match(/点击\s*(\d+)/);if(m&&m[1]){var idx=parseInt(m[1])-1;if(pageElems[idx]&&pageElems[idx].href){nav(pageElems[idx].href);am('s','🖱️ 点击: '+esc(pageElems[idx].text));af('点击: '+esc(pageElems[idx].text),'done');}}return;}
+if(c==='解析'||c==='刷新元素'){parsePage();return;}
+if(c==='提取'||c==='正文'||c==='提取正文'){extractPage();return;}
+if(c==='总结'||c==='总结文献'||c==='摘要'){summarizePage();return;}
+if(c==='扫描表单'||c==='表单'||c==='填表'){scanForm();return;}
+if(c==='刷新'||c==='重新加载'){rb.click();am('s','🔄');return;}
+if(c==='后退'||c==='返回'){bb.click();return;}
+if(c==='前进'){fb.click();return;}
+if(c==='主页'||c==='首页'){nav(document.getElementById('homePage').value||'https://www.baidu.com');return;}
+if(c==='帮助'||c==='help'){am('b','📋 <strong>指令：</strong><br>• 搜索XX / 打开XX<br>• 点击N / 解析 / 提取<br>• 总结 / 扫描表单<br>• 刷新 / 后退 / 前进');return;}
+aiSearch(cmd);
+}
+cmdBtn.onclick=function(){processCmd(cmdIn.value);};
+cmdIn.onkeydown=function(e){if(e.key==='Enter')processCmd(cmdIn.value);};
+
+// ===== URL Hash 远程 =====
+function checkHash(){
+var hh=window.location.hash;if(!hh||hh==='#'||hh==='#!')return;
+var m=hh.match(/#cmd=([^|]+)(?:\|(.*))?/);if(!m)return;
+var type=m[1],data=m[2]||'';history.replaceState(null,'','#');
+setTimeout(function(){
+am('b','📡 <strong>远程：</strong>'+type+' '+(data||''));
+switch(type){
+case 'navigate':case 'open':nav(decodeURIComponent(data));break;
+case 'parse':parsePage();break;
+case 'extract':extractPage();break;
+case 'summarize':summarizePage();break;
+case 'scanform':case 'form':scanForm();break;
+case 'search':aiSearch(decodeURIComponent(data));break;
+case 'refresh':rb.click();break;
+case 'back':bb.click();break;
+case 'forward':fb.click();break;
+case 'home':nav(document.getElementById('homePage').value||'https://www.baidu.com');break;
+case 'click':if(data){var idx=parseInt(data)-1;if(pageElems[idx]&&pageElems[idx].href){nav(pageElems[idx].href);am('s','🖱️ 远程点击: '+esc(pageElems[idx].text));af('远程点击: '+esc(pageElems[idx].text),'done');}}break;
+default:am('s','❌ 未知命令: '+type);
+}
+},100);
+},100);
+}
+window.onhashchange=checkHash;
+
+// Tab切换
+document.querySelectorAll('.ptb').forEach(function(t){
+t.onclick=function(){
+document.querySelectorAll('.ptb').forEach(function(x){x.classList.remove('a');});
+document.querySelectorAll('.pc').forEach(function(x){x.style.display='none';x.classList.remove('a');});
+this.classList.add('a');
+var id=this.getAttribute('data-t');document.getElementById('t-'+id).style.display='flex';document.getElementById('t-'+id).classList.add('a');
+};
+});
+
+// 快捷键
+document.onkeydown=function(e){
+if(e.ctrlKey&&e.key==='l'){e.preventDefault();urlIn.focus();urlIn.select();}
+if(e.ctrlKey&&e.key==='k'){e.preventDefault();cmdIn.focus();}
+if(e.key==='Escape'){sh();}
+};
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// 启动
+setTimeout(function(){nav(document.getElementById('homePage').value||'https://www.baidu.com');},300);
+checkHash();
+})();
+</script>
+</body>
+</html>

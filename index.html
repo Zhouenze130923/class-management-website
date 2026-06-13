@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>华棠班级管理系统 - www.huatang-class.top</title>
+    <meta name="description" content="为教师打造的班级管理工具：吵闹监控、小组加分、座位管理、班级呼叫一体化">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+    <style>
+        /* ===== 首页专门样式 ===== */
+        .hero {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-radius: 20px;
+            margin-top: 20px;
+        }
+        .hero h2 {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero p {
+            color: #666;
+            font-size: 1.05rem;
+            max-width: 560px;
+            margin: 0 auto 24px;
+            line-height: 1.7;
+        }
+        .buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn-primary, .btn-secondary {
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-size: .95rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all .2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(102,126,234,.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102,126,234,.4);
+        }
+        .btn-secondary {
+            background: #fff;
+            color: #667eea;
+            border: 2px solid #e0e6f5;
+        }
+        .btn-secondary:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 40px;
+        }
+        .feature-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 28px 24px;
+            border: 1px solid #f0f2f8;
+            transition: all .2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0,0,0,.06);
+        }
+        .feature-card .icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+        .feature-card h4 {
+            font-size: 1.1rem;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+        }
+        .feature-card p {
+            color: #666;
+            font-size: .9rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+        .feature-card .tag {
+            display: inline-block;
+            font-size: .7rem;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin-top: 12px;
+            font-weight: 600;
+        }
+        .tag-hot { background: #fef2f2; color: #dc2626; }
+        .tag-new { background: #f0fdf4; color: #16a34a; }
+        .tag-pro { background: #eef2ff; color: #4f46e5; }
+
+        .quick-links {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 40px;
+            padding: 24px;
+            background: #f8f9ff;
+            border-radius: 16px;
+        }
+        .quick-link {
+            padding: 8px 18px;
+            border-radius: 30px;
+            background: #fff;
+            border: 1px solid #e0e6f5;
+            color: #555;
+            text-decoration: none;
+            font-size: .85rem;
+            font-weight: 500;
+            transition: all .15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .quick-link:hover {
+            border-color: #667eea;
+            color: #667eea;
+            transform: translateY(-1px);
+        }
+        .section-title {
+            font-size: 1.3rem;
+            color: #1a1a2e;
+            margin: 48px 0 20px;
+            text-align: center;
+        }
+        .section-title span {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        footer {
+            text-align: center;
+            padding: 32px 0;
+            color: #999;
+            font-size: .85rem;
+            border-top: 1px solid #f0f2f8;
+            margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>华棠班级管理系统</h1>
+            <p class="subtitle">让班级管理更简单高效</p>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <ul>
+                <li><a href="index.html">首页</a></li>
+                <li><a href="pages/unified-v2.html" style="color:#f1c40f;font-weight:800;">🌟 班级管理一体化</a></li>
+                <li><a href="https://call.huatang-class.top" target="_blank">📞 班级呼叫</a></li>
+                <li><a href="pages/noise-monitor.html">午休吵闹监控</a></li>
+                <li><a href="pages/call-teacher.html" style="color:#a78bfa;">👨‍🏫 教师端</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            <!-- Hero -->
+            <section class="hero">
+                <h2>🎯 班级管理，一站搞定</h2>
+                <p>吵闹监控自动扣分 · 小组加分排名 · 座位违规标记 · 班级远程呼叫<br>专为教师设计的免费班级管理工具</p>
+                <div class="buttons">
+                    <a href="pages/unified-v2.html" class="btn-primary">🌟 进入一体化管理</a>
+                    <a href="https://call.huatang-class.top" class="btn-secondary" target="_blank">📞 班级呼叫系统</a>
+                </div>
+            </section>
+
+            <!-- 快速入口 -->
+            <div class="quick-links">
+                <a href="pages/noise-monitor.html" class="quick-link">🔇 午休监控</a>
+                <a href="https://call.huatang-class.top" target="_blank" class="quick-link">📞 呼叫大屏</a>
+                <a href="pages/call-teacher.html" class="quick-link">👨‍🏫 教师端</a>
+            </div>
+
+            <!-- 功能介绍 -->
+            <h3 class="section-title"><span>核心功能</span></h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🔇</div>
+                    <h4>吵闹监控</h4>
+                    <p>班干部记录午休吵闹程度，自动扣分。7 级标准搭配实时趋势图，班级纪律一目了然。</p>
+                    <span class="tag tag-hot">🔥 热门口碑</span>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🏆</div>
+                    <h4>小组加分</h4>
+                    <p>实时排名、批量加减分、加分事由记录。小组趋势图直观展现每周进步轨迹。</p>
+                    <span class="tag tag-new">✨ 新版</span>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🪑</div>
+                    <h4>座位管理</h4>
+                    <p>6 列 × 8 行座位布局，拖拽框选后一键批量扣分，座位吵闹等级标记，历史快照回溯。</p>
+                    <span class="tag tag-new">✨ 新版</span>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📞</div>
+                    <h4>班级呼叫</h4>
+                    <p>教室大屏实时显示教师呼叫信息，无需学生手机，低延迟通知。</p>
+                    <a href="https://call.huatang-class.top" target="_blank" style="display:block;margin-top:12px;color:#667eea;font-weight:600;font-size:.85rem;">call.huatang-class.top →</a>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h4>数据统计</h4>
+                    <p>噪音趋势图、小组分数走势图、座位分布统计。今日总结一键生成，便于班会复盘。</p>
+                </div>
+            </div>
+
+            <!-- 使用场景 -->
+            <h3 class="section-title"><span>使用场景</span></h3>
+            <div class="feature-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+                <div class="feature-card" style="padding:20px;">
+                    <h4 style="font-size:.95rem;">🏫 午休纪律管理</h4>
+                    <p style="font-size:.85rem;">班干部坐镇记录，自动扣分，教师远程掌握班级动态</p>
+                </div>
+                <div class="feature-card" style="padding:20px;">
+                    <h4 style="font-size:.95rem;">📅 课堂小组激励</h4>
+                    <p style="font-size:.85rem;">回答问题加分、作业优秀加分，实时排名激发竞争</p>
+                </div>
+                <div class="feature-card" style="padding:20px;">
+                    <h4 style="font-size:.95rem;">📋 班会数据展示</h4>
+                    <p style="font-size:.85rem;">一键生成今日总结，大屏展示给全班看，信息公开透明</p>
+                </div>
+                <div class="feature-card" style="padding:20px;">
+                    <h4 style="font-size:.95rem;">📞 教室远程呼叫</h4>
+                    <p style="font-size:.85rem;">教师办公室发送呼叫，教室大屏秒级显示，通知学生到办公室</p>
+                </div>
+            </div>
+
+            <!-- 使用步骤 -->
+            <h3 class="section-title"><span>快速上手</span></h3>
+            <div class="feature-grid" style="grid-template-columns: repeat(4, 1fr); gap:12px;">
+                <div class="feature-card" style="padding:20px;text-align:center;">
+                    <div style="font-size:1.8rem;font-weight:800;color:#667eea;margin-bottom:8px;">1</div>
+                    <h4 style="font-size:.9rem;">打开页面</h4>
+                    <p style="font-size:.8rem;">浏览器打开 huatang-class.top，无需注册</p>
+                </div>
+                <div class="feature-card" style="padding:20px;text-align:center;">
+                    <div style="font-size:1.8rem;font-weight:800;color:#667eea;margin-bottom:8px;">2</div>
+                    <h4 style="font-size:.9rem;">开始记录</h4>
+                    <p style="font-size:.8rem;">拖动滑竿记录当前吵闹程度，系统自动扣分</p>
+                </div>
+                <div class="feature-card" style="padding:20px;text-align:center;">
+                    <div style="font-size:1.8rem;font-weight:800;color:#667eea;margin-bottom:8px;">3</div>
+                    <h4 style="font-size:.9rem;">加分激励</h4>
+                    <p style="font-size:.8rem;">为表现好的小组加分，实时更新排行榜</p>
+                </div>
+                <div class="feature-card" style="padding:20px;text-align:center;">
+                    <div style="font-size:1.8rem;font-weight:800;color:#667eea;margin-bottom:8px;">4</div>
+                    <h4 style="font-size:.9rem;">总结复盘</h4>
+                    <p style="font-size:.8rem;">生成今日总结，班会时展示给全班</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 华棠班级管理系统 | 专为教师设计的教育工具</p>
+            <p style="margin-top:4px;">www.huatang-class.top</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

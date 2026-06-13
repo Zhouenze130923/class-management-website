@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>教师端</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#0a0e17;color:#e0e6f0;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.app{width:100%;max-width:400px;padding:20px;text-align:center}
+h2{color:#a78bfa;font-size:1.1rem;margin-bottom:.5rem}
+p{color:#6b7280;font-size:.75rem;margin-bottom:1rem}
+.tabs{display:flex;gap:.5rem;justify-content:center;margin-bottom:1rem}
+.tabs button{padding:.3rem 1rem;border-radius:20px;border:none;font-weight:700;font-size:.8rem;cursor:pointer}
+.tabs .on{background:#a78bfa;color:#fff}
+.tabs .off{background:#1e2a3a;color:#6b7280}
+.field{text-align:left;margin-bottom:.6rem}
+.field label{display:block;font-size:.65rem;color:#6b7280;margin-bottom:.2rem;font-weight:600}
+.field input,.field select{width:100%;padding:.4rem .6rem;border-radius:10px;border:1.5px solid #1e2a3a;background:#0d1520;color:#e0e6f0;font-size:.8rem;outline:none}
+.field input:focus,.field select:focus{border-color:#a78bfa}
+.btn{width:100%;padding:.5rem;border-radius:10px;border:none;background:linear-gradient(135deg,#a78bfa,#8b5cf6);color:#fff;font-weight:700;cursor:pointer;margin-top:.2rem}
+.err{color:#ef4444;font-size:.75rem;min-height:1rem;margin-bottom:.3rem}
+.hidden{display:none}
+.ok{color:#27ae60;font-size:.75rem}
+</style>
+</head>
+<body>
+<div class="app">
+<div id="loginPage">
+<h2>👨‍🏫 教师端</h2>
+<div class="tabs">
+<button class="on" id="tabLogin" onclick="switchTab('login')">登录</button>
+<button class="off" id="tabReg" onclick="switchTab('reg')">注册</button>
+</div>
+
+<div id="loginForm">
+<div class="field"><label>用户名</label><input type="text" id="lPhone" placeholder="设置用户名"></div>
+<div class="field"><label>密码</label><input type="password" id="lPw" placeholder="密码"></div>
+<div class="err" id="lErr"></div>
+<button class="btn" onclick="doLogin()">登录</button>
+</div>
+
+<div id="regForm" class="hidden">
+<div class="field"><label>用户名</label><input type="text" id="rPhone" placeholder="设置用户名"></div>
+<div class="field"><label>密码（至少4位）</label><input type="password" id="rPw" placeholder="密码"></div>
+<div class="field"><label>教师身份</label><select id="rType"><option value="班主任">班主任</option><option value="任课老师">任课老师</option></select></div>
+<div class="field"><label>教师名称</label><input type="text" id="rName" placeholder="如：张老师"></div>
+<div class="field"><label>班级名称</label><input type="text" id="rClass" placeholder="如：三年级一班"></div>
+<div class="err" id="rErr"></div>
+<button class="btn" onclick="doReg()">注册</button>
+</div>
+</div>
+
+<div id="mainPage" class="hidden">
+<p style="color:#a78bfa;font-weight:700">教师码：<span id="codeDisplay">—</span> <span style="font-size:.55rem;color:#6b7280" onclick="showConnect()">🔗 连接</span></p>
+<button class="btn" style="background:transparent;border:1px solid #1e2a3a;margin-bottom:.3rem" onclick="copyCode()">📋 复制教师码</button>
+<div id="connectPanel" class="hidden" style="margin-bottom:.5rem;padding:.4rem;background:#141b2d;border-radius:10px">
+<div class="field"><label>输入教师码连接</label><input type="text" id="connectCode" placeholder="如TCH7A3B" style="text-transform:uppercase;font-family:monospace"></div>
+<button class="btn" onclick="doConnect()" style="margin-bottom:.2rem">连接</button>
+<div class="err" id="connectErr"></div>
+</div>
+<div id="classList" style="margin:.5rem 0"></div>
+<div id="callHistory" style="background:#141b2d;border:1px solid #1e2a3a;border-radius:10px;padding:.4rem .6rem;margin-bottom:.5rem;font-size:.75rem;color:#6b7280"></div>
+<div id="callPanel" style="background:#141b2d;border:1px solid #1e2a3a;border-radius:10px;padding:.5rem .6rem;margin-bottom:.5rem">
+<p style="font-size:.7rem;color:#6b7280;margin-bottom:.3rem">📞 发送呼叫</p>
+<input type="text" id="callNameInput" placeholder="学生姓名" style="width:100%;padding:.35rem .5rem;border-radius:8px;border:1.5px solid #1e2a3a;background:#0d1520;color:#e0e6f0;font-size:.8rem;outline:none;box-sizing:border-box">
+<div style="display:flex;gap:.3rem;margin-top:.3rem">
+<button class="btn" onclick="sendCall()" style="padding:.35rem;font-size:.75rem">呼叫</button>
+<button class="btn" style="background:transparent;border:1px solid #1e2a3a;color:#6b7280;padding:.35rem;font-size:.75rem" onclick="clearCall()">清除</button>
+</div>
+<div id="callResult" style="font-size:.7rem;color:#6b7280;margin-top:.3rem"></div>
+</div>
+<div class="field"><input type="text" id="newClsName" placeholder="新班级名称"><button class="btn" onclick="addClass()" style="margin-top:.3rem">➕ 添加班级</button></div>
+<button class="btn" style="background:transparent;border:1px solid #ef4444;color:#ef4444;margin-top:.5rem" onclick="logout()">退出登录</button>
+</div>
+</div>
+
+<script>
+// ===== 修复：改为相对路径，兼容子域名和主域名部署 =====
+var API = '/api/call';
+var AUTH_API = '/api/auth';
+
+function switchTab(t){
+  document.getElementById('tabLogin').className = t==='login'?'on':'off';
+  document.getElementById('tabReg').className = t==='reg'?'on':'off';
+  document.getElementById('loginForm').style.display = t==='login'?'block':'none';
+  document.getElementById('regForm').style.display = t==='reg'?'block':'none';
+}
+
+function doReg(){
+  var p=document.getElementById('rPhone').value.trim();
+  var w=document.getElementById('rPw').value;
+  var t=document.getElementById('rType').value;
+  var n=document.getElementById('rName').value.trim();
+  var c=document.getElementById('rClass').value.trim();
+  if(p.length<2){document.getElementById('rErr').textContent='用户名无效';return;}
+  if(w.length<4){document.getElementById('rErr').textContent='密码至少4位';return;}
+  if(!n||!c){document.getElementById('rErr').textContent='请填写完整';return;}
+  fetch(AUTH_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'register',phone:p,password:w,teacherName:n,teacherType:t,className:c})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.error){document.getElementById('rErr').textContent=d.error;return;}
+      localStorage.setItem('***',d.teacherCode);
+      d.data.teacherCode=d.teacherCode;localStorage.setItem('***',JSON.stringify(d.data));
+      location.reload();
+    }).catch(function(e){document.getElementById('rErr').textContent='网络错误';});
+}
+
+function doLogin(){
+  var p=document.getElementById('lPhone').value.trim();
+  var w=document.getElementById('lPw').value;
+  if(!p||!w){document.getElementById('lErr').textContent='请填写完整';return;}
+  fetch(AUTH_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',phone:p,password:w})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.error){document.getElementById('lErr').textContent=d.error;return;}
+      localStorage.setItem('***',d.teacherCode);
+      d.data.teacherCode=d.teacherCode;localStorage.setItem('***',JSON.stringify(d.data));
+      location.reload();
+    }).catch(function(e){document.getElementById('lErr').textContent='网络错误';});
+}
+
+function copyCode(){
+  var code=document.getElementById('codeDisplay').textContent;
+  if(navigator.clipboard){navigator.clipboard.writeText(code);}
+  else alert(code);
+}
+
+function addClass(){
+  var n=document.getElementById('newClsName').value.trim();
+  if(!n) return;
+  var raw=localStorage.getItem('***')||'null';
+  var data=JSON.parse(raw);
+  if(!data||!data.classes) return;
+  data.classes.push({id:Date.now()+'a',name:n,teacherType:data.teacherType||'班主任'});
+  localStorage.setItem('***',JSON.stringify(data));
+  location.reload();
+}
+
+function sendCall(){
+  var n=document.getElementById('callNameInput').value.trim();
+  if(!n){document.getElementById('callResult').textContent='输入学生姓名';return;}
+  var data=JSON.parse(localStorage.getItem('***')||'null');
+  if(!data||!data.teacherCode){document.getElementById('callResult').textContent='未登录';return;}
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_room:data.teacherCode,name:n,className:(data.classes&&data.classes[0]?data.classes[0].name:''),teacherName:data.teacherName||'教师'})})
+    .then(function(r){return r.json();})
+    .then(function(d){document.getElementById('callResult').textContent='✅ 已呼叫 '+n;document.getElementById('callNameInput').value='';})
+    .catch(function(e){document.getElementById('callResult').textContent='网络错误';});
+}
+
+function clearCall(){
+  var data=JSON.parse(localStorage.getItem('***')||'null');
+  if(data&&data.teacherCode){
+    fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_room:data.teacherCode,_clear:true})}).catch(function(){});
+  }
+  document.getElementById('callResult').textContent='已清除';
+}
+
+function showConnect(){
+  var el=document.getElementById('connectPanel');
+  el.classList.toggle('hidden');
+}
+
+function doConnect(){
+  var code=document.getElementById('connectCode').value.trim().toUpperCase();
+  if(!code){document.getElementById('connectErr').textContent='输入教师码';return;}
+  fetch(AUTH_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'lookup',code:code})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.error){document.getElementById('connectErr').textContent=d.error;return;}
+      document.getElementById('connectErr').textContent='✅ 已连接';
+      localStorage.setItem('***',JSON.stringify({teacherCode:d.teacherCode,teacherName:d.data.teacherName,teacherType:d.data.teacherType,classes:d.data.classes}));
+      location.reload();
+    }).catch(function(e){document.getElementById('connectErr').textContent='网络错误';});
+}
+
+function logout(){
+  localStorage.removeItem('***');
+  localStorage.removeItem('***');
+  location.reload();
+}
+
+// 检查登录状态
+var token=localStorage.getItem('***')||'';
+var saved=localStorage.getItem('***')||'null';
+var data=JSON.parse(saved);
+
+if(data&&data.teacherCode){
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('mainPage').classList.remove('hidden');
+  document.getElementById('codeDisplay').textContent=data.teacherCode;
+  var h='';
+  if(data.classes){
+    data.classes.forEach(function(c){
+      var r=c.teacherType||data.teacherType||'班主任';
+      h+='<div style="background:#141b2d;border:1px solid #1e2a3a;border-radius:10px;padding:.4rem .6rem;margin:.2rem 0;font-size:.8rem">';
+      h+=c.name+' <span style="font-size:.6rem;color:#6b7280">('+r+')</span>';
+      h+=' <a href="unified-v2.html" style="color:#a78bfa;font-size:.6rem;text-decoration:none;float:right">📊 管理</a>';
+      h+='</div>';
+    });
+  }
+  document.getElementById('classList').innerHTML=h;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+::1 - - [09/May/2026 20:35:15] "GET /pages/noise-monitor.html HTTP/1.1" 200 -
+::1 - - [09/May/2026 20:35:16] "GET /css/style.css HTTP/1.1" 200 -
+::1 - - [09/May/2026 20:35:16] "GET /js/main.js HTTP/1.1" 304 -
+::1 - - [09/May/2026 20:35:16] "GET /js/noise-monitor.js HTTP/1.1" 304 -
+::1 - - [09/May/2026 20:35:20] "GET /index.html HTTP/1.1" 200 -
+::1 - - [09/May/2026 20:35:20] "GET /css/style.css HTTP/1.1" 304 -
+::1 - - [09/May/2026 20:35:26] "GET /pages/group-points.html HTTP/1.1" 200 -
+::1 - - [09/May/2026 20:35:26] "GET /css/style.css HTTP/1.1" 304 -
+::1 - - [09/May/2026 20:43:45] "GET /pages/noise-monitor.html HTTP/1.1" 304 -
+::1 - - [09/May/2026 20:43:46] "GET /css/style.css HTTP/1.1" 304 -
+::1 - - [09/May/2026 20:43:46] "GET /js/main.js HTTP/1.1" 304 -
+::1 - - [09/May/2026 20:43:46] "GET /js/noise-monitor.js HTTP/1.1" 304 -
+::1 - - [09/May/2026 20:43:47] code 404, message File not found
+::1 - - [09/May/2026 20:43:47] "GET /pages/homework.html HTTP/1.1" 404 -
+::1 - - [09/May/2026 20:43:51] "GET /pages/noise-monitor.html HTTP/1.1" 200 -
+::1 - - [09/May/2026 20:43:52] "GET /index.html HTTP/1.1" 304 -
+::1 - - [09/May/2026 20:44:44] "GET /css/style.css HTTP/1.1" 304 -
+::1 - - [09/May/2026 20:58:34] "GET /pages/noise-monitor.html HTTP/1.1" 200 -
+::1 - - [09/May/2026 20:58:34] "GET /css/style.css HTTP/1.1" 304 -
+::1 - - [09/May/2026 20:58:34] "GET /js/main.js HTTP/1.1" 304 -
+::1 - - [09/May/2026 20:58:34] "GET /js/noise-monitor.js HTTP/1.1" 304 -
+::1 - - [09/May/2026 20:58:37] "GET /pages/students.html HTTP/1.1" 304 -
+::1 - - [09/May/2026 20:58:39] code 404, message File not found
+::1 - - [09/May/2026 20:58:39] "GET /pages/homework.html HTTP/1.1" 404 -
+::1 - - [09/May/2026 20:58:41] "GET /pages/calendar.html HTTP/1.1" 304 -
+::1 - - [09/May/2026 20:58:42] "GET /pages/group-points.html HTTP/1.1" 304 -

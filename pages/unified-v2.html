@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>班级管理一体化 - 华棠班级管理系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;color:#1d1d1f;background:#f0f4ff;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+.screen{width:100vw;height:100vh;display:flex;flex-direction:column;background:linear-gradient(180deg,#f0f4ff 0%,#eef1f8 100%)}
+.topbar{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;text-align:center;padding:.5rem 1.5rem;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:.6rem;box-shadow:0 2px 16px rgba(102,126,234,.25)}
+.topbar h1{font-size:1.4rem;font-weight:700;letter-spacing:2px}
+.topbar .badge{font-size:.7rem;background:rgba(255,255,255,.2);padding:.1rem .7rem;border-radius:30px;font-weight:500;border:1px solid rgba(255,255,255,.15)}
+
+.main-row{flex:1;display:flex;gap:.6rem;padding:.4rem .6rem .2rem;max-width:1500px;margin:0 auto;width:100%;min-height:0}
+
+/* ===== 左列：噪音状态+小组 ===== */
+.panel-left{flex:0 0 360px;display:flex;flex-direction:column;gap:.4rem;min-height:0;overflow:hidden}
+
+/* 噪音大卡片 */
+.status-card{flex:1;min-height:0;background:#fff;border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,.05);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.5rem 1rem;gap:.15rem}
+.sc-label{font-size:.8rem;color:#86868b;font-weight:500}
+.sc-level{font-size:4.5rem;font-weight:800;line-height:1;transition:color .3s;letter-spacing:3px}
+.sc-bar{width:80%;max-width:280px}
+.sc-bar .lbar-wrap{height:12px;background:#eef0f8;border-radius:12px;overflow:hidden}
+.sc-bar .lbar-fill{height:100%;border-radius:12px;transition:width .3s,background .3s}
+.sc-num{font-size:.85rem;color:#86868b}
+.sc-num strong{font-size:2.2rem;font-weight:700;transition:color .3s}
+.sc-actions{display:flex;gap:.4rem;margin-top:.15rem}
+.sc-act-btn{padding:.2rem .7rem;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:.6rem;transition:all .1s}
+.sc-summary{background:#e8f5e9;color:#27ae60;border:1.5px solid #b8e6b8}
+.sc-summary:hover{background:#27ae60;color:#fff;border-color:#27ae60}
+.sc-reset{background:#fff5f5;color:#ff4757;border:1.5px solid #ffd4d4}
+.sc-reset:hover{background:#ff4757;color:#fff;border-color:#ff4757}
+
+/* 分数预览（紧凑底栏） */
+.mini-board{flex-shrink:0;background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.04);padding:.35rem .5rem}
+.mb-list{display:flex;flex-wrap:wrap;gap:1px 6px}
+.mb-item{display:flex;align-items:center;gap:2px;font-size:.5rem;padding:.08rem .2rem;border-radius:4px;background:#fafbff}
+.mb-item .mi-rank{width:11px;height:11px;border-radius:50%;background:#667eea;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.4rem;font-weight:800;flex-shrink:0}
+.mb-item .mi-name{font-weight:600;color:#1d1d1f}
+.mb-item .mi-val{font-weight:700;color:#667eea;min-width:16px;text-align:right}
+.mb-item.rank-1{background:linear-gradient(135deg,#fff9e6,#fff)}
+.mb-item.rank-1 .mi-rank{background:linear-gradient(135deg,#f5a623,#f7c948)}
+.mb-item.rank-2 .mi-rank{background:linear-gradient(135deg,#a0aec0,#cbd5e0)}
+.mb-item.rank-3 .mi-rank{background:linear-gradient(135deg,#cd7f32,#d4a56c)}
+
+/* ===== 右列：趋势图+控制条 ===== */
+.panel-right{flex:1;display:flex;flex-direction:column;gap:.4rem;min-width:0;min-height:0}
+.chart-box{flex:1;background:#fff;border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,.05);display:flex;align-items:center;justify-content:center;padding:.4rem;min-height:60px}
+.chart-box canvas{width:100%!important;height:100%!important;object-fit:contain}
+.chart-box .empty-chart{color:#999;font-size:.8rem;text-align:center;line-height:2}
+.chart-box .empty-chart span{display:block;font-size:1.8rem}
+
+/* 控制条 */
+.ctrl-bar{flex-shrink:0;background:#fff;border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,.05);padding:.4rem .6rem}
+.ctrl-btns{display:flex;gap:2px;margin-bottom:.2rem}
+.ctrl-btn{flex:1;padding:.22rem .05rem;border:1.5px solid #e8ecf8;border-radius:6px;background:#fafbff;cursor:pointer;font-size:.58rem;font-weight:600;text-align:center;transition:all .08s;color:#888}
+.ctrl-btn:hover{transform:translateY(-1px);box-shadow:0 2px 4px rgba(0,0,0,.04)}
+.ctrl-btn.active{border-color:currentColor;background:currentColor;color:#fff!important}
+.ctrl-slider{width:100%;height:6px;cursor:pointer;-webkit-appearance:none;appearance:none;border-radius:6px;background:linear-gradient(to right,#27ae60 0%,#2ecc71 16.7%,#f1c40f 33.3%,#f39c12 50%,#e67e22 66.7%,#e74c3c 83.3%,#8e44ad 100%);outline:none}
+.ctrl-slider::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;cursor:pointer;border:2.5px solid #667eea;box-shadow:0 2px 6px rgba(0,0,0,.12);transition:transform .1s}
+.ctrl-slider::-webkit-slider-thumb:hover{transform:scale(1.12)}
+.ctrl-slider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;border:2.5px solid #667eea;background:#fff;cursor:pointer}
+.ctrl-hint{font-size:.58rem;color:#888;text-align:center;min-height:.8rem;margin-top:.05rem}
+
+/* 吵闹预警 */
+@keyframes noiseAlert{0%{background:linear-gradient(180deg,#f0f4ff 0%,#eef1f8 100%);box-shadow:none}25%{background:linear-gradient(180deg,#ff1744 0%,#d50000 100%);box-shadow:inset 0 0 80px rgba(255,23,68,.3)}50%{background:linear-gradient(180deg,#f0f4ff 0%,#eef1f8 100%);box-shadow:none}75%{background:linear-gradient(180deg,#ff1744 0%,#d50000 100%);box-shadow:inset 0 0 120px rgba(255,23,68,.4)}100%{background:linear-gradient(180deg,#f0f4ff 0%,#eef1f8 100%);box-shadow:none}}
+@keyframes alertPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.05);opacity:.85}}
+@keyframes alertShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.noise-alert-active{animation:noiseAlert 1.2s ease-in-out infinite!important}
+.noise-alert-active #currentLevelName{animation:alertPulse .6s ease-in-out infinite;color:#d50000!important}
+.noise-alert-active #currentLevelNum strong{color:#d50000!important;animation:alertShake .4s ease-in-out infinite}
+.noise-alert-active .status-card{border:3px solid #d50000;box-shadow:0 0 30px rgba(213,0,0,.4)}
+.noise-alert-active .topbar{background:linear-gradient(135deg,#d50000 0%,#b71c1c 100%)!important}
+.noise-alert-active .badge{background:rgba(255,255,255,.3);animation:alertPulse .6s ease-in-out infinite}
+.scroll-hint{text-align:center;padding:.1rem;color:#b0b8d0;font-size:.65rem;flex-shrink:0}
+
+/* 下半部 */
+.below{width:100%;padding:.5rem .5rem .8rem;background:#f0f4ff}
+.below-inner{max-width:1500px;margin:0 auto}
+.section-tabs{display:flex;gap:.35rem;margin-bottom:.5rem;flex-wrap:wrap;justify-content:center}
+.section-tab{padding:.3rem 1rem;border-radius:30px;border:1.5px solid #e0e6f5;background:#fff;cursor:pointer;font-size:.7rem;font-weight:600;color:#888;transition:all .1s;user-select:none}
+.section-tab.active{border-color:#667eea;color:#fff;background:linear-gradient(135deg,#667eea,#764ba2)}
+.section-tab:hover{transform:translateY(-1px);box-shadow:0 2px 5px rgba(102,126,234,.1)}
+.section-panel{display:none}
+.section-panel.active{display:block}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem}
+.stat-card{background:#fff;border-radius:12px;padding:.55rem;box-shadow:0 2px 8px rgba(0,0,0,.03);text-align:center;transition:transform .1s}
+.stat-card:hover{transform:translateY(-2px)}
+.stat-card .stat-num{font-size:1.3rem;font-weight:800;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-card .stat-label{font-size:.65rem;color:#888;margin-top:.1rem}
+.stat-seats-title{font-size:.75rem;color:#667eea;font-weight:700;margin:.6rem 0 .3rem;padding:.2rem 0;border-bottom:2px solid #e0e6f5}
+.toolbar-row{display:flex;gap:.3rem;align-items:center;flex-wrap:wrap;padding:.3rem .5rem;background:#fff;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.03);margin-bottom:.4rem}
+.toolbar-row .tb-l{font-size:.65rem;color:#667eea;font-weight:600;flex-shrink:0}
+.tb-btn{padding:.2rem .5rem;border-radius:7px;border:1.5px solid #e0e6f5;background:#fafbff;cursor:pointer;font-size:.6rem;font-weight:600;transition:all .08s;color:#888;white-space:nowrap}
+.tb-btn:hover{transform:translateY(-1px);box-shadow:0 2px 4px rgba(0,0,0,.04)}
+.tb-btn:disabled{opacity:.4;cursor:default;transform:none!important;box-shadow:none!important}
+.tb-btn.danger{color:#ff4757;border-color:#ffd4d4;background:#fff5f5}
+.tb-btn.danger:hover{background:#ff4757;color:#fff;border-color:#ff4757}
+.tb-btn.undo{color:#e67e22;border-color:#f5deb3;background:#fffcf5}
+.tb-btn.undo:hover:not(:disabled){background:#e67e22;color:#fff;border-color:#e67e22}
+.tb-btn.green{color:#27ae60;border-color:#b8e6b8}
+.tb-btn.green:hover{background:#27ae60;color:#fff;border-color:#27ae60}
+.tb-btn.red{color:#e74c3c;border-color:#f5c6c6}
+.tb-btn.red:hover{background:#e74c3c;color:#fff;border-color:#e74c3c}
+
+.table-wrap{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.03);padding:.35rem;overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:.35rem .3rem;text-align:center;border-bottom:1px solid #f0f2f8;font-size:.72rem}
+th{background:#f8f9ff;font-weight:600;color:#667eea}
+tr:last-child td{border-bottom:none}
+.level-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:3px;vertical-align:middle}
+.deduct-cell{color:#e74c3c;font-weight:600}
+.bonus-cell{color:#27ae60;font-weight:600}
+
+/* 座位 */
+.seat-toolbar{display:flex;gap:.12rem;align-items:center;flex-wrap:wrap;padding:.18rem .25rem;background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.02);margin-bottom:.15rem;font-size:.55rem}
+.seat-toolbar .st-label{font-weight:600;color:#667eea;margin-right:.08rem;flex-shrink:0}
+.st-btn{padding:.1rem .22rem;border-radius:5px;border:1.5px solid #e0e6f5;background:#fafbff;cursor:pointer;font-size:.5rem;font-weight:600;transition:all .08s;color:#888;white-space:nowrap}
+.st-btn:hover{transform:translateY(-1px);box-shadow:0 2px 4px rgba(0,0,0,.04)}
+.st-btn.active{border-color:currentColor;background:currentColor;color:#fff!important}
+.st-btn.clear{color:#ff4757;border-color:#ffd4d4;background:#fff5f5}
+.st-btn.clear:hover{background:#ff4757;color:#fff;border-color:#ff4757}
+.st-count{font-size:.5rem;color:#667eea;font-weight:700;margin-left:auto;flex-shrink:0;background:#f0f4ff;padding:.02rem .25rem;border-radius:20px}
+.seat-wrap{background:#fff;border-radius:7px;box-shadow:0 1px 4px rgba(0,0,0,.02);padding:.15rem;user-select:none}
+.seat-grid{display:grid;gap:2px}
+.seat-col-label{text-align:center;font-size:.42rem;font-weight:700;color:#667eea;padding:0}
+.seat-cell{border-radius:3px;border:1.5px solid #e0e6f5;background:#fafbff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.42rem;font-weight:600;color:#1d1d1f;transition:all .06s;position:relative;min-height:14px;padding:.04rem 0}
+.seat-cell:hover{border-color:#667eea}
+.seat-cell.selected{border-color:#667eea;box-shadow:0 0 0 2px rgba(102,126,234,.3)}
+.seat-cell.empty{border-color:transparent;background:transparent;cursor:default;box-shadow:none}
+.seat-cell.historical{opacity:.45;cursor:default}
+.seat-cell.historical:hover{border-color:#e0e6f5}
+.seat-cell.level-1{background:#2ecc7115;border-color:#2ecc71}
+.seat-cell.level-2{background:#f1c40f20;border-color:#f1c40f}
+.seat-cell.level-3{background:#f39c1225;border-color:#f39c12}
+.seat-cell.level-4{background:#e74c3c1a;border-color:#e74c3c;color:#e74c3c}
+.seat-cell.level-5{background:#8e44ad20;border-color:#8e44ad;color:#8e44ad}
+.seat-cell .seat-tag{font-size:.32rem;font-weight:700;padding:0 .08rem;border-radius:2px;color:#fff;line-height:1}
+.seat-nav{display:flex;align-items:center;justify-content:center;gap:.25rem;padding:.1rem 0}
+.seat-nav-arrow{width:16px;height:16px;border-radius:50%;border:1.5px solid #e0e6f5;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:#667eea;transition:all .1s;user-select:none}
+.seat-nav-arrow:hover{background:#667eea;color:#fff;border-color:#667eea}
+.seat-nav-arrow.disabled{opacity:.2;cursor:default}
+.seat-nav-arrow.disabled:hover{background:#fff;color:#667eea;border-color:#e0e6f5}
+.seat-nav-info{font-size:.48rem;color:#888;min-width:50px;text-align:center}
+
+/* 呼叫面板 */
+
+
+.feature-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-top:.6rem}
+.feature-card{background:#fff;border-radius:12px;padding:.5rem;box-shadow:0 2px 8px rgba(0,0,0,.03);transition:transform .1s}
+.feature-card:hover{transform:translateY(-2px)}
+.feature-card h4{font-size:.75rem;color:#667eea;margin-bottom:.15rem;font-weight:700}
+.feature-card p{font-size:.65rem;color:#666;line-height:1.5}
+footer{text-align:center;padding:.5rem;color:#b0b8d0;font-size:.65rem}
+
+/* 弹窗 */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.35);z-index:2000;display:flex;align-items:center;justify-content:center}
+.modal-box{background:#fff;border-radius:18px;padding:1rem 1.3rem;box-shadow:0 8px 40px rgba(0,0,0,.12);width:320px;max-width:90vw}
+.modal-box h3{font-size:.9rem;color:#667eea;margin-bottom:.5rem;text-align:center}
+.modal-box label{display:block;font-size:.7rem;color:#555;margin-bottom:.12rem;font-weight:600}
+.modal-box input{width:100%;padding:.35rem;border:1.5px solid #e0e6f5;border-radius:8px;font-size:.75rem;margin-bottom:.4rem;outline:none}
+.modal-box input:focus{border-color:#667eea}
+.modal-hint{font-size:.65rem;color:#b0b8d0;text-align:center;margin-bottom:.3rem}
+.modal-btns{display:flex;gap:.4rem}
+.modal-btns button{flex:1;padding:.4rem;border-radius:10px;border:none;font-weight:600;font-size:.75rem;cursor:pointer;transition:all .1s}
+.summary-box{max-width:420px;width:90vw}
+.sb-text{font-family:monospace;font-size:.78rem;line-height:1.6;white-space:pre-wrap;color:#1d1d1f}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#e8f5e9;border-radius:12px;padding:.4rem 1rem;box-shadow:0 4px 20px rgba(0,0,0,.12);z-index:3000;font-size:.75rem;border:2px solid #27ae60;font-weight:500}
+
+@media(max-width:900px){
+.main-row{flex-direction:column;gap:.5rem;padding:.4rem}
+.panel-left{flex:none;max-height:300px}
+.sc-card-row{flex-wrap:wrap}
+.sc-card{flex:1 1 30%}
+.stats-row{grid-template-columns:repeat(2,1fr)}
+.feature-grid{grid-template-columns:repeat(2,1fr)}
+#scoreGrid{grid-template-columns:repeat(2,1fr)!important}
+}
+@media(max-width:600px){
+.topbar{padding:.3rem .8rem}
+.topbar h1{font-size:1rem}
+.topbar .badge{font-size:.55rem}
+.main-row{gap:.3rem;padding:.2rem .3rem}
+.panel-left{flex:none;max-height:220px}
+.sc-level{font-size:2.8rem!important}
+.sc-bar{width:90%!important}
+.sc-num strong{font-size:1.5rem!important}
+.sc-act-btn{padding:.15rem .5rem!important;font-size:.5rem!important}
+.mb-item{font-size:.42rem!important;padding:.05rem .12rem!important}
+.mb-item .mi-rank{width:9px!important;height:9px!important;font-size:.35rem!important}
+.section-tab{font-size:.6rem;padding:.2rem .6rem}
+.stats-row{grid-template-columns:repeat(2,1fr)}
+.stat-card .stat-num{font-size:1rem}
+#scoreGrid{grid-template-columns:repeat(2,1fr)!important}
+.toolbar-row{gap:.15rem;padding:.2rem .3rem}
+.tb-btn{font-size:.5rem;padding:.15rem .35rem}
+.feature-grid{grid-template-columns:1fr}
+.ctrl-btn{font-size:.5rem;padding:.15rem .05rem}
+.seat-grid{grid-template-columns:repeat(5,1fr)!important}
+}
+</style>
+</head>
+<body>
+
+<div class="screen">
+<div class="topbar">
+<h1>班级管理一体化</h1>
+<span class="badge">吵闹扣分·小组加分·呼叫</span>
+</div>
+
+<div class="main-row">
+
+<!-- ===== 左列：噪音状态 + 小组卡片 ===== -->
+<div class="panel-left">
+<div class="status-card">
+<div class="sc-left">
+<div class="sc-label">当前吵闹程度</div>
+<div class="sc-level" id="currentLevelName">鸦雀无声</div>
+</div>
+<div class="sc-bar">
+<div class="lbar-wrap"><div class="lbar-fill" id="levelBarFill" style="width:0%"></div></div>
+</div>
+<div class="sc-num"><span>等级</span><strong id="currentLevelNum">0.0</strong><span>/ 6.0</span></div>
+<div class="sc-actions">
+<button class="sc-act-btn sc-summary" id="summaryBtn">📋 今日总结</button>
+<button class="sc-act-btn sc-reset" id="resetNoiseBtn">🗑️ 清空噪音</button>
+</div>
+</div>
+
+<div class="mini-board" id="miniBoard">
+<div class="mb-list" id="mbList"></div>
+</div>
+</div>
+
+<!-- ===== 右列：趋势图 + 控制条 ===== -->
+<div class="panel-right">
+<div class="chart-box" id="noiseChartBox">
+<div class="empty-chart"><span>📊</span>暂无数据</div>
+</div>
+<div class="ctrl-bar">
+<div class="ctrl-btns" id="levelButtons"></div>
+<input type="range" min="0" max="6" value="0" step="0.1" class="ctrl-slider" id="noiseSlider">
+<div class="ctrl-hint" id="deductHint">🤫 安静，不扣分</div>
+</div>
+</div>
+</div>
+
+<div class="scroll-hint">↓ 下方：历史记录 · 统计 · 座位 · 呼叫</div>
+</div>
+
+<div class="below">
+<div class="below-inner">
+<div class="section-tabs">
+<span class="section-tab active" data-tab="history">📋 历史</span>
+<span class="section-tab" data-tab="stats">📊 统计</span>
+<span class="section-tab" data-tab="seats">🪑 座位</span>
+<span class="section-tab" data-tab="score">✏️ 加分</span>
+</div>
+
+<!-- 历史 -->
+<div class="section-panel active" id="panel-history">
+<div class="table-wrap">
+<table><thead><tr><th>时间</th><th>类型</th><th>描述</th><th>分值</th><th>记录人</th></tr></thead><tbody id="historyTable"><tr><td colspan="5" style="color:#999;padding:.6rem">暂无记录</td></tr></tbody></table>
+</div>
+</div>
+
+<!-- 统计 -->
+<div class="section-panel" id="panel-stats">
+<div class="stats-row">
+<div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">总记录</div></div>
+<div class="stat-card"><div class="stat-num" id="statAvg">—</div><div class="stat-label">平均等级</div></div>
+<div class="stat-card"><div class="stat-num" id="statMax">—</div><div class="stat-label">最高等级</div></div>
+<div class="stat-card"><div class="stat-num" id="statCalm">0</div><div class="stat-label">安静</div></div>
+</div>
+<div class="stat-seats-title">🏆 小组趋势图</div>
+<div class="chart-box" id="groupChartBox" style="min-height:160px;flex:1;margin-bottom:.4rem">
+<div class="empty-chart"><span>📈</span>暂无数据</div>
+</div>
+<div class="stats-row">
+<div class="stat-card"><div class="stat-num" id="statFirst">—</div><div class="stat-label">第一名</div></div>
+<div class="stat-card"><div class="stat-num" id="statLast">—</div><div class="stat-label">最后一名</div></div>
+<div class="stat-card"><div class="stat-num" id="statTotalDeduct">0</div><div class="stat-label">总扣分</div></div>
+<div class="stat-card"><div class="stat-num" id="statTotalBonus">0</div><div class="stat-label">总加分</div></div>
+</div>
+<div class="stat-seats-title">🪑 座位统计</div>
+<div class="stats-row">
+<div class="stat-card"><div class="stat-num" id="seatStatTotal">0</div><div class="stat-label">已标记</div></div>
+<div class="stat-card"><div class="stat-num" id="seatStatSnap">0</div><div class="stat-label">快照</div></div>
+<div class="stat-card"><div class="stat-num" id="seatStatQuiet">0</div><div class="stat-label">安静</div></div>
+<div class="stat-card"><div class="stat-num" id="seatStatNoisy">0</div><div class="stat-label">吵闹(≥3)</div></div>
+</div>
+</div>
+
+<!-- 座位 -->
+<div class="section-panel" id="panel-seats">
+<div class="seat-toolbar">
+<span class="st-label">🎯 等级：</span>
+<div class="st-btn" data-stlv="0" style="color:#27ae60">0</div>
+<div class="st-btn" data-stlv="1" style="color:#f1c40f">1</div>
+<div class="st-btn" data-stlv="2" style="color:#f39c12">2</div>
+<div class="st-btn" data-stlv="3" style="color:#e74c3c">3</div>
+<div class="st-btn" data-stlv="4" style="color:#8e44ad">4</div>
+<div class="st-btn clear">✕</div>
+<span class="st-count" id="seatCount">已选 0</span>
+<div class="st-btn clear" id="resetAllSeatsBtn" style="margin-left:.1rem">🗑️</div>
+</div>
+<div class="seat-wrap">
+<div class="seat-grid" id="seatGrid"></div>
+<div class="seat-nav">
+<div class="seat-nav-arrow" id="navPrev">◀</div>
+<span class="seat-nav-info" id="navInfo">当前</span>
+<div class="seat-nav-arrow" id="navNext">▶</div>
+</div>
+</div>
+<div style="font-size:.5rem;color:#888;margin-top:.12rem;text-align:center">💡 左键点击框选 → 点击等级 → 自动扣分；点击「🔧 编辑座位」可自定义布局</div>
+</div>
+
+<!-- 加分 -->
+<div class="section-panel" id="panel-score">
+<div class="toolbar-row" style="margin-bottom:.4rem">
+<span class="tb-l">⚡ 批量：</span>
+<button class="tb-btn green" id="allPlus1">全+1</button>
+<button class="tb-btn green" id="allPlus2">全+2</button>
+<button class="tb-btn red" id="allMinus1">全-1</button>
+<span class="tb-l" style="margin-left:.2rem">🎯 已选：</span>
+<button class="tb-btn green" id="selPlus1" disabled>+1</button>
+<button class="tb-btn green" id="selPlus2" disabled>+2</button>
+<button class="tb-btn green" id="selPlus5" disabled>+5</button>
+<button class="tb-btn red" id="selMinus1" disabled>-1</button>
+<button class="tb-btn danger" id="selClear" disabled>取消</button>
+<button class="tb-btn undo" id="undoBtn" disabled>↩️</button>
+<button class="tb-btn danger" id="resetAllBtn">🗑️</button>
+</div>
+<div id="scoreGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem"></div>
+</div>
+
+<!-- 呼叫面板（从下方移除，改为全屏入口） -->
+
+<div class="feature-grid">
+<div class="feature-card"><h4>⚡ 自动扣分</h4><p>噪音≥3级自动对全体小组扣分。座位标记→该组额外扣分。</p></div>
+<div class="feature-card"><h4>🏆 实时预览</h4><p>左侧紧凑排名 + 下方详细加分面板，不干扰噪音操作。</p></div>
+<div class="feature-card"><h4>📈 趋势图</h4><p>噪音趋势 + 小组分数趋势图，双图表全局掌控。</p></div>
+<div class="feature-card"><h4>📞 班级呼叫</h4><p>点首页进入 <a href="https://call.huatang-class.top" target="_blank" style="color:#667eea;font-weight:700;text-decoration:underline">call.huatang-class.top</a> 独立使用</p></div>
+</div>
+<footer>华棠班级管理系统 · 吵闹扣分+小组加分 · <a href="https://call.huatang-class.top" target="_blank" style="color:#a78bfa;text-decoration:none">📞 大屏</a> · <a href="call-teacher.html" style="color:#a78bfa;text-decoration:none">👨‍🏫 教师端</a></footer>
+</div>
+</div>
+
+<!-- ===== 全屏呼叫界面 ===== -->
+
+<script>
+(function(){
+'use strict';
+
+// ===== 常量 =====
+var LEVELS=[
+{name:'鸦雀无声',color:'#27ae60',short:'无声'},
+{name:'窃窃私语',color:'#2ecc71',short:'私语'},
+{name:'低声细语',color:'#f1c40f',short:'低语'},
+{name:'交头接耳',color:'#f39c12',short:'接耳'},
+{name:'人声嘈杂',color:'#e67e22',short:'嘈杂'},
+{name:'人声鼎沸',color:'#e74c3c',short:'鼎沸'},
+{name:'惊天动地',color:'#8e44ad',short:'动地'}
+];
+var SEAT_COLORS=['#27ae60','#f1c40f','#f39c12','#e74c3c','#8e44ad'];
+var SEAT_GROUP_MAP=[5,4,3,2,1,0]; // kept for compat
+var STORAGE_KEY='unified_v3';
+var GROUP_COLORS=['#667eea','#27ae60','#f39c12','#e74c3c','#8e44ad','#2ecc71'];
+
+// ===== 数据 =====
+function loadData(){
+var raw=localStorage.getItem(STORAGE_KEY);
+if(raw){try{var p=JSON.parse(raw);
+p.groups.forEach(function(g){if(g.base===undefined)g.base=30;});
+return p;}catch(e){}}
+return{
+groups:[
+{id:1,name:'第1组',base:30,bonus:0,deduction:0},
+{id:2,name:'第2组',base:30,bonus:0,deduction:0},
+{id:3,name:'第3组',base:30,bonus:0,deduction:0},
+{id:4,name:'第4组',base:30,bonus:0,deduction:0},
+{id:5,name:'第5组',base:30,bonus:0,deduction:0},
+{id:6,name:'第6组',base:30,bonus:0,deduction:0}
+],
+scoreHistory:[],
+noiseHistory:[],
+seatData:{},
+seatHistory:[],
+lastNoiseRecorded:null
+};
+}
+var data=loadData();
+
+function saveData(){
+localStorage.setItem(STORAGE_KEY,JSON.stringify({
+groups:data.groups,
+scoreHistory:data.scoreHistory,
+noiseHistory:data.noiseHistory,
+seatData:data.seatData,
+seatHistory:data.seatHistory,
+lastNoiseRecorded:data.lastNoiseRecorded
+}));
+}
+
+function fmt(){var d=new Date();return('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+':'+('0'+d.getSeconds()).slice(-2);}
+function getNet(g){return(g.base!==undefined?g.base:30)+g.bonus-g.deduction;}
+function lerpColor(a,b,t){var ah=parseInt(a.slice(1),16),ar=ah>>16,ag=(ah>>8)&0xff,ab=ah&0xff;var bh=parseInt(b.slice(1),16),br=bh>>16,bg=(bh>>8)&0xff,bb=bh&0xff;return '#'+((1<<24)+(Math.round(ar+(br-ar)*t)<<16)+(Math.round(ag+(bg-ag)*t)<<8)+Math.round(ab+(bb-ab)*t)).toString(16).slice(1);}
+
+// ===== 扣分规则 =====
+function getGlobalDeduction(level){
+if(level<3)return 0;
+if(level<4)return 1;
+if(level<5)return 2;
+if(level<6)return 3;
+return 5;
+}
+function getSeatDeduction(slv){
+if(slv<=1)return 0;
+if(slv===2)return 1;
+if(slv===3)return 2;
+if(slv===4)return 4;
+return 5;
+}
+
+// ===== DOM =====
+var slider=document.getElementById('noiseSlider');
+var levelNameEl=document.getElementById('currentLevelName');
+var levelNumEl=document.getElementById('currentLevelNum');
+var levelBarFill=document.getElementById('levelBarFill');
+var deductHint=document.getElementById('deductHint');
+var tbody=document.getElementById('historyTable');
+var chartDiv=document.getElementById('noiseChartBox');
+var groupChartBox=document.getElementById('groupChartBox');
+var levelButtons=document.getElementById('levelButtons');
+var scoreGrid=document.getElementById('scoreGrid');
+var mbList=document.getElementById('mbList');
+
+// ===== 噪音显示 =====
+function updateNoiseDisplay(v){
+v=parseFloat(v);var vInt=Math.min(LEVELS.length-1,Math.max(0,Math.round(v)));var lv=LEVELS[vInt];
+var vFrac=v-Math.floor(v);var dc=lv.color;
+if(vFrac>0.01&&vInt<LEVELS.length-1)dc=lerpColor(LEVELS[vInt].color,LEVELS[vInt+1].color,vFrac);
+else if(vFrac<-0.01&&vInt>0)dc=lerpColor(LEVELS[vInt-1].color,LEVELS[vInt].color,1+vFrac);
+var dt=lv.name;
+levelNameEl.textContent=dt;levelNameEl.style.color=dc;
+levelNumEl.textContent=v.toFixed(1);
+levelNumEl.style.color=dc;
+levelBarFill.style.width=(v/6*100)+'%';levelBarFill.style.background=dc;
+slider.value=v;
+levelButtons.querySelectorAll('.ctrl-btn').forEach(function(b,i){b.classList.toggle('active',i===vInt);});
+var pg=getGlobalDeduction(v);
+if(pg>0){deductHint.innerHTML='⚠️ <strong>'+lv.name+'</strong>，每组扣<strong style="color:#e74c3c">'+pg+'</strong>分';deductHint.style.color='#e74c3c'}
+else{deductHint.innerHTML='✅ 安静，不扣分';deductHint.style.color='#27ae60'}
+}
+
+// ===== 小组卡片 =====
+var selectedGroups={};
+function showReason(callback){
+var ov=document.createElement('div');ov.className='modal-overlay';
+ov.innerHTML='<div class="modal-box"><h3>📝 事由</h3><input type="text" id="reasonInput" placeholder="输入事由（可留空）"><div class="modal-hint">💡 例：积极发言、作业优秀、纪律扣分</div><div class="modal-btns"><button id="reasonCancel" style="background:#f0f2f8;color:#888">取消</button><button id="reasonConfirm" style="background:#667eea;color:#fff">确定</button></div></div>';
+document.body.appendChild(ov);
+var inp=document.getElementById('reasonInput');inp.focus();
+function cl(){document.body.removeChild(ov);}
+document.getElementById('reasonCancel').onclick=function(){cl();callback(null);};
+document.getElementById('reasonConfirm').onclick=function(){var v=inp.value.trim();cl();callback(v||'');};
+inp.onkeydown=function(e){if(e.key==='Enter'){var v=inp.value.trim();cl();callback(v||'');}};
+}
+
+function modifyScore(gi,delta,reason,isSeat){
+if(!reason)reason='';
+var g=data.groups[gi];if(!g)return;
+g.bonus+=Math.max(0,delta);
+g.deduction+=Math.max(0,-delta);
+var ts=fmt();var dm=delta>0?'+'+delta:''+delta;
+data.scoreHistory.push({ts:ts,gi:gi,delta:delta,net:getNet(g),reason:reason,isSeat:!!isSeat});
+if(data.scoreHistory.length>300)data.scoreHistory=data.scoreHistory.slice(-300);
+saveData();
+renderGrid();renderTable();renderStats();
+var t=document.createElement('div');t.className='toast';
+t.style.borderColor=delta>0?'#27ae60':'#e74c3c';
+t.innerHTML='✅ <strong>'+g.name+'</strong> '+dm+'分'+(reason?'（'+reason+'）':'');
+document.body.appendChild(t);setTimeout(function(){document.body.removeChild(t)},2000);
+}
+
+function pushNoise(level,recorder){
+var v=parseFloat(level);var vi=Math.min(LEVELS.length-1,Math.max(0,Math.round(v)));var lv=LEVELS[vi];
+var diff=v-vi;var dir=diff>0.1?'偏上':(diff<-0.1?'偏下':'');
+var ts=fmt();
+var td=0;
+var pg=getGlobalDeduction(v);
+if(pg>0){data.groups.forEach(function(g){g.deduction+=pg;td+=pg;});}
+data.lastNoiseRecorded=v;
+data.noiseHistory.push({time:ts,levelNum:v,level:lv.name+(dir?' '+dir:''),color:lv.color,deduction:td,recorder:recorder});
+saveData();
+renderGrid();renderTable();drawNoiseChart();renderStats();
+checkNoiseAlert();
+if(td>0){deductHint.innerHTML='✅ 已记录<strong>'+lv.name+'</strong>，共扣<strong style="color:#e74c3c">'+td+'</strong>分';deductHint.style.color='#e74c3c'}
+else{deductHint.innerHTML='✅ 已记录<strong>'+lv.name+'</strong>，无扣分';deductHint.style.color='#27ae60'}
+setTimeout(function(){updateNoiseDisplay(parseFloat(slider.value))},1500);
+}
+
+function pushNoiseSilent(level,recorder){
+// 自动记录专用：不显示toast
+var v=parseFloat(level);var vi=Math.min(LEVELS.length-1,Math.max(0,Math.round(v)));var lv=LEVELS[vi];
+var ts=fmt();var td=0;
+var pg=getGlobalDeduction(v);
+if(pg>0){data.groups.forEach(function(g){g.deduction+=pg;td+=pg;});}
+data.lastNoiseRecorded=v;
+data.noiseHistory.push({time:ts,levelNum:v,level:lv.name,color:lv.color,deduction:td,recorder:recorder});
+saveData();
+renderGrid();renderTable();drawNoiseChart();renderStats();
+checkNoiseAlert();
+}
+
+// ===== 紧凑排行榜 =====
+function renderMiniBoard(){
+var sorted=data.groups.slice().sort(function(a,b){return getNet(b)-getNet(a)});
+var h='';
+sorted.forEach(function(g,i){
+var rank=i+1,net=getNet(g);
+var rc=rank<=3?' rank-'+rank:'';
+h+='<div class="mb-item'+rc+'">';
+h+='<span class="mi-rank">'+rank+'</span>';
+h+='<span class="mi-name">'+g.name+'</span>';
+h+='<span class="mi-val">'+net+'</span></div>';
+});
+mbList.innerHTML=h;
+}
+
+// ===== 渲染详细卡片 =====
+function renderGrid(){
+var maxScore=1;
+var nets=data.groups.map(function(g){var n=getNet(g);if(n>maxScore)maxScore=n;return n;});
+var html='';
+data.groups.forEach(function(g,i){
+var net=nets[i];var sel=selectedGroups[i]||false;
+html+='<div class="sc-card'+(sel?' selected':'')+(nets.indexOf(net)<3?' rank-'+(nets.indexOf(net)+1):'')+'" data-gi="'+i+'">';
+html+='<div class="scr-r">#'+(nets.indexOf(net)+1)+'</div>';
+html+='<div class="scr-n">'+g.name+'</div>';
+html+='<div class="scr-v">'+net+'</div>';
+html+='<div class="scr-b"><div class="scr-bf" style="width:'+(net/maxScore*100)+'%"></div></div>';
+html+='<div class="scr-ops">';
+html+='<button class="op-plus" data-gi="'+i+'" data-d="1">+1</button>';
+html+='<button class="op-plus" data-gi="'+i+'" data-d="2">+2</button>';
+html+='<button class="op-plus" data-gi="'+i+'" data-d="5">+5</button>';
+html+='<button class="op-minus" data-gi="'+i+'" data-d="-1">-1</button>';
+html+='<button class="op-set" data-gi="'+i+'">✏️</button>';
+html+='</div></div>';
+});
+scoreGrid.innerHTML=html;
+
+scoreGrid.querySelectorAll('.sc-card').forEach(function(c){
+c.addEventListener('click',function(e){
+if(e.target.closest('.scr-ops'))return;
+var gi=parseInt(this.getAttribute('data-gi'));
+if(selectedGroups[gi])delete selectedGroups[gi];
+else selectedGroups[gi]=true;
+renderGrid();updateBatchUI();
+});
+});
+scoreGrid.querySelectorAll('.op-plus,.op-minus').forEach(function(b){
+b.addEventListener('click',function(e){
+e.stopPropagation();
+var gi=parseInt(this.getAttribute('data-gi'));var delta=parseInt(this.getAttribute('data-d'));
+showReason(function(reason){if(reason===null)return;modifyScore(gi,delta,reason,false);});
+});
+});
+scoreGrid.querySelectorAll('.op-set').forEach(function(b){
+b.addEventListener('click',function(e){
+e.stopPropagation();
+var gi=parseInt(this.getAttribute('data-gi'));
+var val=prompt('直接输入分数（设为该值）：','30');
+if(val!==null){var n=parseInt(val);if(!isNaN(n)&&n>=0){data.groups[gi].base=0;data.groups[gi].bonus=Math.max(0,n);data.groups[gi].deduction=Math.max(0,data.groups[gi].deduction);renderMiniBoard();saveData();renderGrid();renderTable();renderStats();}}
+});
+});
+}
+
+function updateBatchUI(){
+var keys=Object.keys(selectedGroups);
+var disabled=keys.length===0;
+['selPlus1','selPlus2','selPlus5','selMinus1','selClear'].forEach(function(id){
+document.getElementById(id).disabled=disabled;
+});
+}
+
+function batchAdd(v){
+showReason(function(reason){
+if(reason===null)return;
+var cnt=0;
+data.groups.forEach(function(g,i){
+if(selectedGroups[i]){modifyScore(i,v,reason,false);cnt++;}
+});
+if(!cnt&&v!==0){
+// 没选中任何组→全组
+data.groups.forEach(function(g,i){modifyScore(i,v,reason,false);});
+}
+});
+}
+
+// ===== 吵闹预警 =====
+var alertActive=false;
+function checkNoiseAlert(){
+if(!data.noiseHistory.length)return;
+var last3=data.noiseHistory.slice(-3);
+var hc=0;
+for(var ni=0;ni<last3.length;ni++){
+var nv=last3[ni].levelNum!==undefined?last3[ni].levelNum:0;
+if(nv>=4)hc++;}
+var sa=hc>=3;
+if(sa&&!alertActive){alertActive=true;document.querySelector('.screen').classList.add('noise-alert-active')}
+else if(!sa&&alertActive){alertActive=false;document.querySelector('.screen').classList.remove('noise-alert-active')}
+}
+
+// ===== 历史 =====
+function renderTable(){
+var all=[];
+data.noiseHistory.forEach(function(r){
+var val=r.levelNum!==undefined?r.levelNum:0;
+var dc=r.deduction||0;
+all.push({ts:r.time,type:'🔊 噪音',desc:r.level,pts:dc>0?'-'+dc:'0',ptsClass:dc>0?'deduct-cell':'',recorder:r.recorder});
+});
+data.scoreHistory.forEach(function(r){
+var g=data.groups[r.gi];if(!g)return;
+var cls=r.delta>0?'bonus-cell':(r.delta<0?'deduct-cell':'');
+var dm=r.delta>0?'+'+r.delta:''+r.delta;
+var desc=(r.isSeat?'🪑 ':'')+(r.reason?r.reason:'');
+all.push({ts:r.ts,type:r.delta>0?'✅ 加分':'🔻 扣分',desc:g.name+(desc?' ('+desc+')':''),pts:dm,ptsClass:cls,recorder:''});
+});
+all.sort(function(a,b){return a.ts>b.ts?-1:a.ts<b.ts?1:0;});
+var show=all.slice(0,100);
+tbody.innerHTML='';
+if(!show.length){tbody.innerHTML='<tr><td colspan="5" style="color:#999;padding:.6rem">暂无记录</td></tr>';return;}
+var h='';
+show.forEach(function(r){
+h+='<tr><td>'+r.ts+'</td><td>'+r.type+'</td><td>'+r.desc+'</td><td class="'+r.ptsClass+'">'+r.pts+'</td><td>'+r.recorder+'</td></tr>';
+});
+tbody.innerHTML=h;
+}
+
+// ===== 统计 =====
+function renderStats(){
+renderMiniBoard();
+var total=data.noiseHistory.length;
+if(!total){
+['statTotal','statAvg','statMax','statCalm'].forEach(function(id){document.getElementById(id).textContent=id==='statTotal'?'0':(id==='statCalm'?'0':'—');});
+}
+else{
+var sum=0,maxV=0,calm=0;
+data.noiseHistory.forEach(function(r){
+var val=r.levelNum!==undefined?r.levelNum:0;
+if(val>maxV)maxV=val;sum+=val;if(val<0.5)calm++;
+});
+document.getElementById('statTotal').textContent=total;
+document.getElementById('statAvg').textContent=(sum/total).toFixed(1);
+document.getElementById('statMax').textContent=LEVELS[Math.min(LEVELS.length-1,Math.max(0,Math.round(maxV)))].name;
+document.getElementById('statCalm').textContent=calm;
+}
+var sorted=data.groups.slice().sort(function(a,b){return getNet(b)-getNet(a)});
+document.getElementById('statFirst').textContent=sorted[0].name+'('+getNet(sorted[0])+')';
+document.getElementById('statLast').textContent=sorted[sorted.length-1].name+'('+getNet(sorted[sorted.length-1])+')';
+var tdB=0,tBo=0;
+data.groups.forEach(function(g){tdB+=g.deduction;tBo+=g.bonus;});
+document.getElementById('statTotalDeduct').textContent=tdB;
+document.getElementById('statTotalBonus').textContent=tBo;
+var mk=0,qt=0,ns=0;
+for(var k in data.seatData){var sv=data.seatData[k];if(sv>0)mk++;if(sv===1)qt++;if(sv>=3)ns++;}
+document.getElementById('seatStatTotal').textContent=mk;
+document.getElementById('seatStatSnap').textContent=data.seatHistory.length;
+document.getElementById('seatStatQuiet').textContent=qt;
+document.getElementById('seatStatNoisy').textContent=ns;
+drawGroupChart();
+}
+
+// ===== 噪音趋势图 =====
+function drawNoiseChart(){
+if(!data.noiseHistory.length){chartDiv.innerHTML='<div class="empty-chart"><span>📊</span>暂无数据</div>';return;}
+var p=chartDiv.getBoundingClientRect();var w=Math.max(300,p.width-20);var h=Math.max(85,p.height-20);
+chartDiv.innerHTML='<canvas id="noiseCanvas" width="'+w+'" height="'+h+'"></canvas>';
+var c=document.getElementById('noiseCanvas');var ctx=c.getContext('2d');var dpr=window.devicePixelRatio||1;
+c.width=w*dpr;c.height=h*dpr;c.style.width=w+'px';c.style.height=h+'px';ctx.scale(dpr,dpr);
+var pd={top:10,bottom:20,left:24,right:10};var pw=w-pd.left-pd.right;var ph=h-pd.top-pd.bottom;var ml=LEVELS.length-1;var ct=data.noiseHistory.length;
+ctx.strokeStyle='#eef0f8';ctx.lineWidth=1;
+for(var gi=0;gi<=ml;gi++){var gy=pd.top+ph-(gi/ml)*ph;ctx.beginPath();ctx.moveTo(pd.left,gy);ctx.lineTo(w-pd.right,gy);ctx.stroke();ctx.fillStyle='#b0b8d0';ctx.font='8px sans-serif';ctx.textAlign='right';ctx.fillText(LEVELS[gi].short,pd.left-4,gy+2);}
+var pts=[];for(var j=0;j<ct;j++){var vj=data.noiseHistory[j].levelNum!==undefined?data.noiseHistory[j].levelNum:0;if(vj<0)vj=0;pts.push({x:pd.left+(j/Math.max(ct-1,1))*pw,y:pd.top+ph-(vj/ml)*ph,lv:vj});}
+ctx.beginPath();ctx.moveTo(pts[0].x,pd.top+ph);for(var a=0;a<pts.length;a++)ctx.lineTo(pts[a].x,pts[a].y);ctx.lineTo(pts[pts.length-1].x,pd.top+ph);ctx.closePath();
+var gr=ctx.createLinearGradient(0,pd.top,0,pd.top+ph);gr.addColorStop(0,'rgba(102,126,234,0.08)');gr.addColorStop(1,'rgba(102,126,234,0.01)');ctx.fillStyle=gr;ctx.fill();
+for(var s=0;s<pts.length-1;s++){var pk=Math.min(ml,Math.max(0,Math.round(pts[s].lv)));ctx.strokeStyle=LEVELS[pk].color;ctx.lineWidth=1.8;ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(pts[s].x,pts[s].y);ctx.lineTo(pts[s+1].x,pts[s+1].y);ctx.stroke();}
+for(var k=0;k<pts.length;k++){var pi=Math.min(ml,Math.max(0,Math.round(pts[k].lv)));ctx.fillStyle=LEVELS[pi].color;ctx.beginPath();ctx.arc(pts[k].x,pts[k].y,3,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(pts[k].x,pts[k].y,3,0,Math.PI*2);ctx.stroke();}
+}
+
+// ===== 小组趋势图 =====
+function drawGroupChart(){
+if(!data.scoreHistory.length){groupChartBox.innerHTML='<div class="empty-chart"><span>📈</span>暂无数据</div>';return;}
+var p=groupChartBox.getBoundingClientRect();var w=Math.max(300,p.width-20);var h=Math.max(130,p.height-20);
+groupChartBox.innerHTML='<canvas id="groupCanvas" width="'+w+'" height="'+h+'"></canvas>';
+var c=document.getElementById('groupCanvas');var ctx=c.getContext('2d');var dpr=window.devicePixelRatio||1;
+c.width=w*dpr;c.height=h*dpr;c.style.width=w+'px';c.style.height=h+'px';ctx.scale(dpr,dpr);
+var pd={top:18,bottom:20,left:30,right:15};var pw=w-pd.left-pd.right;var ph=h-pd.top-pd.bottom;
+var groupSeries=[];var allNets=[];
+for(var gi=0;gi<6;gi++){
+var g=data.groups[gi];var base=g.base!==undefined?g.base:30;
+var cur=base+g.bonus-g.deduction;
+var pts=[];
+var bonusCt=0,deductCt=0;
+data.scoreHistory.forEach(function(r){if(r.gi===gi){if(r.delta>0)bonusCt+=r.delta;else deductCt+=-r.delta;pts.push({ts:r.ts,net:base+bonusCt-deductCt});}});
+if(pts.length===0){var init=base;data.noiseHistory.forEach(function(r){init-=r.deduction||0;pts.push({ts:r.time,net:Math.round(init)});});if(pts.length===0)pts.push({ts:fmt(),net:base});}
+pts.push({ts:fmt(),net:cur});
+groupSeries.push(pts);
+pts.forEach(function(pt){allNets.push(pt.net);});
+}
+if(!allNets.length)return;
+var minNet=Math.min.apply(null,allNets);var maxNet=Math.max.apply(null,allNets);
+if(maxNet===minNet){maxNet=minNet+10;minNet=Math.max(0,minNet-5);}
+var range=maxNet-minNet||1;
+ctx.strokeStyle='#eef0f8';ctx.lineWidth=1;
+for(var li=0;li<=4;li++){var ly=pd.top+ph-(li/4)*ph;ctx.beginPath();ctx.moveTo(pd.left,ly);ctx.lineTo(w-pd.right,ly);ctx.stroke();ctx.fillStyle='#b0b8d0';ctx.font='8px sans-serif';ctx.textAlign='right';ctx.fillText(Math.round(minNet+range*li/4),pd.left-4,ly+2);}
+var maxPts=0;groupSeries.forEach(function(ser){if(ser.length>maxPts)maxPts=ser.length;});
+if(maxPts<2)return;
+groupSeries.forEach(function(ser,gi){
+if(ser.length<2)return;
+ctx.strokeStyle=GROUP_COLORS[gi];ctx.lineWidth=1.8;ctx.lineJoin='round';
+ctx.beginPath();
+ser.forEach(function(pt,idx){
+var x=pd.left+(idx/(Math.max(ser.length-1,1)))*pw;
+var y=pd.top+ph-((pt.net-minNet)/range)*ph;
+if(idx===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+});
+ctx.stroke();
+var lastIdx=ser.length-1;
+var lx=pd.left+(lastIdx/(Math.max(ser.length-1,1)))*pw;
+var ly=pd.top+ph-((ser[lastIdx].net-minNet)/range)*ph;
+ctx.fillStyle=GROUP_COLORS[gi];ctx.beginPath();ctx.arc(lx,ly,4,0,Math.PI*2);ctx.fill();
+ctx.fillStyle='#fff';ctx.font='6px sans-serif';ctx.textAlign='center';ctx.fillText(data.groups[gi].name.slice(-2),lx,ly+2);
+});
+}
+
+// ===== 今日总结 =====
+function genSummary(){
+var total=data.noiseHistory.length;
+if(!total)return '暂无数据，无法生成总结。';
+var sum=0,maxV=0,minV=99,quiet=0,noisy=0,totalDeduct=0;
+for(var si=0;si<data.noiseHistory.length;si++){
+var r=data.noiseHistory[si];var val=r.levelNum!==undefined?r.levelNum:0;
+if(val<0)continue;sum+=val;if(val>maxV)maxV=val;if(val<minV)minV=val;if(val<1)quiet++;if(val>=4)noisy++;totalDeduct+=r.deduction||0;
+}
+var avg=(sum/total).toFixed(1);
+var maxName=LEVELS[Math.min(LEVELS.length-1,Math.round(maxV))].name;
+var minName=LEVELS[Math.min(LEVELS.length-1,Math.round(minV))].name;
+var status=avg<1.5?'🟢 整体安静':(avg<3?'🟡 轻度吵闹':(avg<4.5?'🟠 中度吵闹':'🔴 非常吵闹'));
+var baseVal=data.groups[0].base!==undefined?data.groups[0].base:30;
+var sorted=data.groups.slice().sort(function(a,b){return getNet(b)-getNet(a)});
+var rankStr=sorted.map(function(g,i){return (i+1)+'. '+g.name+' ('+getNet(g)+'分)';}).join('\n');
+var res='🏫 班级管理今日总结\n';
+res+='─'.repeat(22)+'\n';
+res+='📊 噪音统计\n';
+res+='  总记录：'+total+' 条\n';
+res+='  平均等级：'+avg+' '+status+'\n';
+res+='  最高：'+maxName+'  最低：'+minName+'\n';
+res+='  安静：'+quiet+'  |  吵闹(≥4级)：'+noisy+'\n';
+res+='  噪音总扣分：'+totalDeduct+'\n\n';
+res+='🏆 小组排名（初始'+baseVal+'分）\n';
+res+='  '+rankStr+'\n\n';
+res+='📝 各小组明细\n';
+data.groups.forEach(function(g){
+var b=g.base!==undefined?g.base:30;
+res+='  '+g.name+'：'+b+' +'+g.bonus+' -'+g.deduction+' = '+getNet(g)+'分\n';
+});
+if(data.noiseHistory.length>=2)res+='\n⏰ 记录时段：'+data.noiseHistory[0].time+' ~ '+data.noiseHistory[data.noiseHistory.length-1].time;
+res+='\n\n📞 加分记录共 '+data.scoreHistory.length+' 条';
+return res;
+}
+
+// ===== 座位 =====
+// ===== 座位（可自定义布局 + 多选切换） =====
+var SEAT_CFG_KEY='seat_layout';
+var seatData=data.seatData;
+var seatHistory=data.seatHistory;
+var historyViewIndex=-1;
+var seatGridEl=document.getElementById('seatGrid');
+var selectedSeats={};
+var isDragging=false;
+var dragStart=null;
+var dragMode=null; // 'select' or 'deselect'
+
+// 从localStorage加载自定义布局
+var savedLayout=JSON.parse(localStorage.getItem(SEAT_CFG_KEY)||'null');
+var seatLayout=savedLayout||{cols:6,rows:8,cells:{}};
+// cells格式: {'0-0':true,'0-1':true,...}  true=有座位  false或缺省=空
+// 默认如果没保存，填充默认布局
+if(!savedLayout){
+for(var cl=0;cl<6;cl++){
+for(var rw=0;rw<8;rw++)seatLayout.cells[cl+'-'+rw]=true;
+}
+localStorage.setItem(SEAT_CFG_KEY,JSON.stringify(seatLayout));
+}
+
+var editMode=false;
+
+function sKey(c,r){return c+'-'+r;}
+
+function toggleEditMode(){
+editMode=!editMode;
+var btn=document.getElementById('seatEditBtn');
+if(btn)btn.textContent=editMode?'🔧 完成编辑':'🔧 编辑座位';
+renderSeats();
+}
+
+function saveSeatSnap(){
+var snap={};for(var k in seatData)snap[k]=seatData[k];
+var ts=fmt();seatHistory.push({time:ts,levels:snap});
+data.seatHistory=seatHistory;saveData();historyViewIndex=-1;updateNavState();
+}
+
+function renderSeats(){
+var isHist=historyViewIndex>=0&&historyViewIndex<seatHistory.length;
+var dd=isHist?seatHistory[historyViewIndex].levels:seatData;
+var cols=editMode?10:(seatLayout.cols||6);
+var rows=editMode?10:(seatLayout.rows||8);
+var html='';
+
+// 列标签
+for(var g=0;g<cols;g++)html+='<div class="seat-col-label">'+(g+1)+'组</div>';
+
+// 行
+for(var r=0;r<rows;r++){
+for(var c=0;c<cols;c++){
+var key=sKey(c,r);
+var isSeat=seatLayout.cells[key]||false;
+if(!isSeat&&!editMode){
+html+='<div class="seat-cell empty"></div>';
+continue;
+}
+var sv=dd[key]||0;
+var isSel=selectedSeats[key]||false;
+var cls='seat-cell';
+if(!isSeat)cls+=' empty';
+else{if(isSel)cls+=' selected';if(sv>0)cls+=' level-'+sv;if(isHist)cls+=' historical';}
+html+='<div class="'+cls+'" data-c="'+c+'" data-r="'+r+'" data-seat="'+(isSeat?'1':'0')+'">';
+if(isSeat){
+html+='<span>'+(r+1)+'</span>';
+if(sv>0)html+='<div class="seat-tag" style="background:'+SEAT_COLORS[sv-1]+'">'+sv+'</div>';
+}else{
+html+='<span style="color:#b0b8d0;font-size:.4rem">+</span>';
+}
+html+='</div>';
+}
+}
+seatGridEl.style.gridTemplateColumns='repeat('+cols+',1fr)';seatGridEl.innerHTML=html;updateSeatCount();updateNavState();
+
+// 座位交互
+if(!isHist){
+seatGridEl.querySelectorAll('.seat-cell').forEach(function(cell){
+cell.addEventListener('mousedown',function(e){
+e.preventDefault();
+var c=parseInt(this.getAttribute('data-c')),r=parseInt(this.getAttribute('data-r'));
+var key=sKey(c,r);
+var isSeat=this.getAttribute('data-seat')==='1';
+
+if(editMode){
+// 编辑模式：点击切换
+toggleCellSeat(c,r);
+return;
+}
+
+// 正常模式：切换选择
+isDragging=true;
+dragStart={c:c,r:r};
+var currentlySelected=!!selectedSeats[key];
+dragMode=currentlySelected?'deselect':'select';
+if(currentlySelected){
+delete selectedSeats[key];
+}else{
+selectedSeats[key]=true;
+}
+this.classList.toggle('selected',!currentlySelected);
+updateSeatCount();
+});
+});
+}
+}
+
+function toggleCellSeat(c,r){
+var key=sKey(c,r);
+if(seatLayout.cells[key]&&seatLayout.cells[key]!==false){
+delete seatLayout.cells[key];
+// 同时清除该座位的吵闹数据
+delete seatData[key];
+data.seatData=seatData;
+}else{
+seatLayout.cells[key]=true;
+}
+localStorage.setItem(SEAT_CFG_KEY,JSON.stringify(seatLayout));
+saveData();
+renderSeats();
+}
+
+function renderSS(){
+seatGridEl.querySelectorAll('.seat-cell:not(.empty)').forEach(function(cell){
+var key=sKey(parseInt(cell.getAttribute('data-c')),parseInt(cell.getAttribute('data-r')));
+cell.classList.toggle('selected',!!selectedSeats[key]);
+});
+updateSeatCount();
+}
+
+function updateSeatCount(){document.getElementById('seatCount').textContent='已选 '+Object.keys(selectedSeats).length;}
+
+function updateNavState(){
+var ni=document.getElementById('navInfo'),pv=document.getElementById('navPrev'),nx=document.getElementById('navNext');
+var t=seatHistory.length;
+if(t===0){ni.textContent='暂无';pv.classList.add('disabled');nx.classList.add('disabled');return;}
+if(historyViewIndex===-1){ni.textContent='当前·共'+t+'次';pv.classList.remove('disabled');nx.classList.add('disabled');}
+else{ni.textContent='#'+(historyViewIndex+1)+'/'+t+' '+seatHistory[historyViewIndex].time;pv.classList.toggle('disabled',historyViewIndex===0);nx.classList.remove('disabled');}
+}
+
+function goPrev(){if(seatHistory.length===0)return;if(historyViewIndex===-1)historyViewIndex=seatHistory.length-1;else if(historyViewIndex>0)historyViewIndex--;else return;renderSeats();}
+function goNext(){if(seatHistory.length===0)return;if(historyViewIndex===seatHistory.length-1){historyViewIndex=-1;renderSeats();return;}if(historyViewIndex===-1)return;historyViewIndex++;renderSeats();}
+
+function applySeatDeduction(){
+var keys=Object.keys(selectedSeats);
+if(keys.length===0)return;
+var total=0,groups={};
+keys.forEach(function(key){
+var sv=seatData[key]||0;if(sv<=0)return;
+var parts=key.split('-'),ci=parseInt(parts[0]);
+// 按列映射到组
+var gi=ci%6;
+if(gi===undefined)return;var g=data.groups[gi];if(!g)return;
+var d=getSeatDeduction(sv);g.deduction+=d;total+=d;
+groups[g.name]=(groups[g.name]||0)+d;
+var ts=fmt();
+data.scoreHistory.push({ts:ts,gi:gi,delta:-d,net:getNet(g),reason:'座位'+sv+'级',isSeat:true});
+});
+if(total>0){
+var detail='';for(var n in groups)detail+=n+'(-'+groups[n]+') ';
+var t=document.createElement('div');t.className='toast';t.style.borderColor='#e74c3c';t.innerHTML='✅ 座位扣分: '+detail+'<br>共<strong style="color:#e74c3c">'+total+'</strong>分';
+document.body.appendChild(t);setTimeout(function(){document.body.removeChild(t)},3500);
+}
+renderMiniBoard();saveData();renderGrid();renderTable();renderStats();
+}
+
+// ===== 呼叫系统（全屏版） =====
+// ===== ⭐ 事件绑定 + 启动 =====
+
+// 1. 滑块操作 → 直接记录
+slider.addEventListener('input',function(){updateNoiseDisplay(this.value);});
+slider.addEventListener('mouseup',function(){var v=parseFloat(this.value);pushNoise(v,'班干部');});
+
+// 2. 生成快捷等级按钮并绑定
+var ctrlBtnsHtml='';
+for(var bi=0;bi<LEVELS.length;bi++){
+ctrlBtnsHtml+='<button class="ctrl-btn" data-lv="'+bi+'" style="color:'+LEVELS[bi].color+'">'+LEVELS[bi].short+'</button>';
+}
+levelButtons.innerHTML=ctrlBtnsHtml;
+levelButtons.querySelectorAll('.ctrl-btn').forEach(function(b){
+b.addEventListener('click',function(){
+var lv=parseInt(this.getAttribute('data-lv'));
+updateNoiseDisplay(lv);
+slider.value=lv;
+pushNoise(lv,'班干部');
+});
+});
+
+// 3. section 标签切换
+document.querySelectorAll('.section-tab').forEach(function(tab){
+tab.addEventListener('click',function(){
+document.querySelectorAll('.section-tab').forEach(function(t){t.classList.remove('active');});
+document.querySelectorAll('.section-panel').forEach(function(p){p.classList.remove('active');});
+this.classList.add('active');
+var target=document.getElementById('panel-'+this.getAttribute('data-tab'));
+if(target)target.classList.add('active');
+if(this.getAttribute('data-tab')==='score'){renderGrid();updateBatchUI();}
+if(this.getAttribute('data-tab')==='seats')renderSeats();
+});
+});
+
+// 4. 批量全组
+document.getElementById('allPlus1').addEventListener('click',function(){showReason(function(r){if(r===null)return;data.groups.forEach(function(g,i){modifyScore(i,1,r,false);});});});
+document.getElementById('allPlus2').addEventListener('click',function(){showReason(function(r){if(r===null)return;data.groups.forEach(function(g,i){modifyScore(i,2,r,false);});});});
+document.getElementById('allMinus1').addEventListener('click',function(){showReason(function(r){if(r===null)return;data.groups.forEach(function(g,i){modifyScore(i,-1,r,false);});});});
+
+// 5. 批量已选
+document.getElementById('selPlus1').addEventListener('click',function(){batchAdd(1);});
+document.getElementById('selPlus2').addEventListener('click',function(){batchAdd(2);});
+document.getElementById('selPlus5').addEventListener('click',function(){batchAdd(5);});
+document.getElementById('selMinus1').addEventListener('click',function(){batchAdd(-1);});
+document.getElementById('selClear').addEventListener('click',function(){selectedGroups={};renderGrid();updateBatchUI();});
+
+// 6. 撤销 + 修改追踪
+var undoHistory=[];
+var _origModify=modifyScore;
+modifyScore=function(gi,delta,reason,isSeat){
+_origModify(gi,delta,reason,isSeat);
+undoHistory.push({gi:gi,delta:delta,time:Date.now()});
+if(undoHistory.length>50)undoHistory.shift();
+document.getElementById('undoBtn').disabled=false;
+};
+document.getElementById('undoBtn').addEventListener('click',function(){
+var last=undoHistory.pop();
+if(last){_origModify(last.gi,-last.delta,'撤销',false);}
+if(!undoHistory.length)this.disabled=true;
+});
+
+// 7. 重置所有
+document.getElementById('resetAllBtn').addEventListener('click',function(){if(confirm('⚠️ 确定重置所有小组分数？')){data.groups.forEach(function(g){g.bonus=0;g.deduction=0;});data.scoreHistory=[];saveData();renderGrid();renderTable();renderStats();}});
+
+// 8. 今日总结
+document.getElementById('summaryBtn').addEventListener('click',function(){
+var text=genSummary();
+var ov=document.createElement('div');ov.className='modal-overlay';
+ov.innerHTML='<div class="modal-box summary-box"><h3>📋 今日总结</h3><div class="sb-text">'+text.replace(/\n/g,'<br>')+'</div><div class="modal-btns"><button onclick="this.parentElement.parentElement.parentElement.remove()" style="flex:1;padding:.4rem;border-radius:10px;border:none;background:#667eea;color:#fff;font-weight:600;cursor:pointer">关闭</button></div></div>';
+document.body.appendChild(ov);
+});
+
+// 9. 清空噪音
+document.getElementById('resetNoiseBtn').addEventListener('click',function(){if(confirm('确定清空所有噪音记录？')){data.noiseHistory=[];data.lastNoiseRecorded=null;saveData();drawNoiseChart();renderTable();renderStats();}});
+
+// 10. 座位 — 拖拽多选切换
+seatGridEl.addEventListener('mousemove',function(e){
+if(!isDragging)return;
+var el=document.elementFromPoint(e.clientX,e.clientY);
+if(!el||!el.classList.contains('seat-cell')||el.classList.contains('empty'))return;
+var c=parseInt(el.getAttribute('data-c')),r=parseInt(el.getAttribute('data-r'));
+var minC=Math.min(dragStart.c,c),maxC=Math.max(dragStart.c,c);
+var minR=Math.min(dragStart.r,r),maxR=Math.max(dragStart.r,r);
+{
+for(var cc=minC;cc<=maxC;cc++){
+for(var rr=minR;rr<=maxR;rr++){
+var k=sKey(cc,rr);
+if(dragMode==='deselect')delete selectedSeats[k];
+else selectedSeats[k]=true;
+}
+}
+renderSS();
+}
+renderSS();
+});
+document.addEventListener('mouseup',function(){
+isDragging=false;dragMode=null;
+});
+
+// 11. 座位等级按钮
+document.querySelectorAll('[data-stlv]').forEach(function(btn){
+btn.addEventListener('click',function(){
+var lv=parseInt(this.getAttribute('data-stlv'));
+for(var key in selectedSeats){seatData[key]=lv;}
+data.seatData=seatData;saveData();renderSeats();
+});
+});
+
+// 12. 座位清空/重置
+var seatClearBtn=document.querySelector('.st-btn.clear');
+if(seatClearBtn)seatClearBtn.addEventListener('click',function(){selectedSeats={};renderSS();});
+document.getElementById('resetAllSeatsBtn').addEventListener('click',function(){if(confirm('确定重置所有座位标记？')){seatData={};data.seatData=seatData;saveData();renderSeats();renderStats();}});
+
+// 13. 编辑模式按钮
+var seatToolbar=document.querySelector('.seat-toolbar');
+if(seatToolbar&&!document.getElementById('seatEditBtn')){
+var eBtn=document.createElement('div');
+eBtn.id='seatEditBtn';
+eBtn.className='st-btn';
+eBtn.style.cssText='background:#667eea;color:#fff;border:1.5px solid #667eea;margin-left:auto;font-size:.5rem;padding:.08rem .25rem';
+eBtn.textContent='🔧 编辑座位';
+seatToolbar.insertBefore(eBtn,seatToolbar.querySelector('.st-count'));
+eBtn.addEventListener('click',toggleEditMode);
+}
+
+// 14. 座位导航
+document.getElementById('navPrev').addEventListener('click',goPrev);
+document.getElementById('navNext').addEventListener('click',goNext);
+
+// 15. 座位快照
+if(!document.getElementById('snapSeatsBtn')){
+var seatNav=document.querySelector('.seat-nav');
+if(seatNav){
+var sBtn=document.createElement('button');
+sBtn.id='snapSeatsBtn';
+sBtn.textContent='📸';
+sBtn.style.cssText='background:none;border:none;color:#667eea;cursor:pointer;font-size:.65rem;';
+sBtn.title='保存当前座位快照';
+seatNav.appendChild(sBtn);
+sBtn.addEventListener('click',saveSeatSnap);
+}
+}
+
+// 15. 自动记录（每分钟，仅当值变化时）
+var autoTimer=setInterval(function(){
+var v=parseFloat(slider.value);
+pushNoiseSilent(v,'自动');
+},60000);
+
+// 16. 预设标签页
+var defaultTab=document.querySelector('[data-tab="history"]');
+if(defaultTab)defaultTab.classList.add('active');
+var defaultPanel=document.getElementById('panel-history');
+if(defaultPanel)defaultPanel.classList.add('active');
+
+// ===== 启动渲染 =====
+updateNoiseDisplay(parseFloat(slider.value));
+renderGrid();
+renderMiniBoard();
+renderTable();
+if(data.noiseHistory.length)drawNoiseChart();else chartDiv.innerHTML='<div class="empty-chart"><span>📊</span>暂无数据</div>';
+renderStats();
+renderSeats();
+if(data.noiseHistory.length)checkNoiseAlert();
+updateBatchUI();
+console.log('✅ 华棠班级管理系统 v3 已加载');
+})();
+</script>
+
+</body>
+</html>

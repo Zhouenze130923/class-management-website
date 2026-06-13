@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>测试</title>
+<style>body{background:#0a0e17;color:#e0e6f0;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
+.box{text-align:center;max-width:300px}
+input{width:100%;padding:8px;margin:4px 0;border-radius:8px;border:1px solid #333;background:#141b2d;color:#fff;font-size:14px}
+button{width:100%;padding:8px;border-radius:8px;border:none;background:#a78bfa;color:#fff;font-weight:700;cursor:pointer;margin-top:4px}
+.err{color:#ef4444;font-size:12px;min-height:16px}
+h2{color:#a78bfa;font-size:18px}
+</style></head>
+<body>
+<div class="box">
+<h2>教师端</h2>
+<input type="tel" id="phone" placeholder="手机号">
+<input type="password" id="pw" placeholder="密码">
+<div class="err" id="err"></div>
+<button onclick="doLogin()">登录</button>
+<p style="font-size:11px;color:#666;margin-top:8px">首次使用请先注册</p>
+</div>
+<script>
+function doLogin(){
+  var p = document.getElementById('phone').value;
+  var w = document.getElementById('pw').value;
+  document.getElementById('err').textContent = '手机号: '+p+', 密码长度: '+w.length;
+}
+console.log('测试页加载成功');
+</script>
+</body>
+</html>

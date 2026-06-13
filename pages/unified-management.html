@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班级管理一体化 - 华棠班级管理系统</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+    <style>
+        /* 重置body背景，覆盖父样式 */
+        body {
+            background: #f0f4ff;
+            overflow-x: hidden;
+        }
+        /* 全局无内边距 */
+        main { padding: 0; }
+        section { margin-bottom: 0; }
+
+        /* ===== 主布局 ===== */
+        .unified-wrap {
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 0.5rem 0.5rem 1rem;
+            width: 100%;
+        }
+
+        /* 两列布局 */
+        .two-col {
+            display: flex;
+            gap: 0.6rem;
+            align-items: stretch;
+        }
+        .col-left {
+            flex: 0 0 360px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+        .col-right {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        /* ===== 通用卡片 ===== */
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 0.6rem 1rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            letter-spacing: 0.5px;
+        }
+        .card-body {
+            padding: 0.6rem 0.8rem;
+        }
+
+        /* ===== 小组排行榜 ===== */
+        .scoreboard {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+        .score-row {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.6rem;
+            border-radius: 10px;
+            background: #fafbff;
+            border: 1px solid #eee;
+            transition: all 0.2s;
+        }
+        .score-row:hover {
+            transform: translateX(3px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .score-row.rank-1 { background: linear-gradient(135deg, #fff9e6, #fff); border-color: #f0d080; }
+        .score-row.rank-2 { border-color: #e0e6f5; }
+        .score-row.rank-3 { border-color: #e0e6f5; }
+
+        .score-rank {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+        .score-row.rank-1 .score-rank { background: linear-gradient(135deg, #f5a623, #f7c948); }
+        .score-row.rank-2 .score-rank { background: linear-gradient(135deg, #a0aec0, #cbd5e0); }
+        .score-row.rank-3 .score-rank { background: linear-gradient(135deg, #cd7f32, #d4a56c); }
+
+        .score-group-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            flex: 1;
+            color: #1d1d1f;
+        }
+        .score-group-name .minus-badge {
+            font-size: 0.6rem;
+            background: #fee;
+            color: #e74c3c;
+            padding: 0.05rem 0.3rem;
+            border-radius: 6px;
+            margin-left: 0.3rem;
+            font-weight: 700;
+        }
+        .score-group-name .plus-badge {
+            font-size: 0.6rem;
+            background: #e8f5e9;
+            color: #27ae60;
+            padding: 0.05rem 0.3rem;
+            border-radius: 6px;
+            margin-left: 0.3rem;
+            font-weight: 700;
+        }
+        .score-detail {
+            font-size: 0.6rem;
+            color: #888;
+            display: flex;
+            gap: 0.2rem;
+            flex-shrink: 0;
+        }
+        .score-detail span {
+            padding: 0.05rem 0.3rem;
+            border-radius: 4px;
+            background: #f0f2f8;
+        }
+        .score-detail .deduct { color: #e74c3c; }
+        .score-detail .bonus { color: #27ae60; }
+        .score-value {
+            font-size: 1.1rem;
+            font-weight: 800;
+            min-width: 36px;
+            text-align: right;
+            color: #667eea;
+        }
+
+        /* ===== 噪音控制区 ===== */
+        .noise-status {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.5rem 0;
+        }
+        .noise-level-big {
+            font-size: 2rem;
+            font-weight: 800;
+            text-align: center;
+            min-width: 100px;
+            transition: color 0.3s;
+        }
+        .noise-bar-wrap {
+            flex: 1;
+            height: 8px;
+            background: #eef0f8;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .noise-bar-fill {
+            height: 100%;
+            border-radius: 8px;
+            transition: width 0.3s, background 0.3s;
+        }
+        .noise-level-num {
+            font-size: 0.85rem;
+            color: #888;
+            font-weight: 600;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .slider-section {
+            margin: 0.3rem 0;
+        }
+        .slider-section input[type="range"] {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+            border-radius: 6px;
+            background: linear-gradient(to right, #27ae60 0%, #2ecc71 16.7%, #f1c40f 33.3%, #f39c12 50%, #e67e22 66.7%, #e74c3c 83.3%, #8e44ad 100%);
+            outline: none;
+        }
+        .slider-section input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            border: 2.5px solid #667eea;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            transition: transform 0.15s;
+        }
+        .slider-section input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+        .slider-section input[type="range"]::-moz-range-thumb {
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            border: 2.5px solid #667eea;
+            background: #fff;
+            cursor: pointer;
+        }
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.6rem;
+            color: #999;
+            margin-top: 0.15rem;
+        }
+
+        .level-quick-btns {
+            display: flex;
+            gap: 3px;
+            margin: 0.4rem 0;
+        }
+        .level-quick-btn {
+            flex: 1;
+            padding: 0.3rem 0.1rem;
+            border: 1.5px solid #e8ecf8;
+            border-radius: 8px;
+            background: #fafbff;
+            cursor: pointer;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.12s;
+            color: #888;
+        }
+        .level-quick-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        .level-quick-btn.active {
+            border-color: currentColor;
+            background: currentColor;
+            color: #fff !important;
+        }
+
+        .btn-row-small {
+            display: flex;
+            gap: 0.4rem;
+            margin-top: 0.4rem;
+        }
+        .btn-row-small button {
+            flex: 1;
+            padding: 0.45rem;
+            font-size: 0.75rem;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.12s;
+        }
+
+        /* ===== 图表容器 ===== */
+        .chart-box {
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chart-box canvas {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain;
+        }
+        .chart-box .empty-chart {
+            color: #999;
+            font-size: 0.85rem;
+            text-align: center;
+            line-height: 2;
+        }
+        .chart-box .empty-chart span { display: block; font-size: 2rem; }
+
+        /* ===== 选项卡 ===== */
+        .section-tabs {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+        .section-tab {
+            padding: 0.35rem 1rem;
+            border-radius: 20px;
+            border: 1.5px solid #e0e6f5;
+            background: #fff;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #888;
+            transition: all 0.12s;
+            user-select: none;
+        }
+        .section-tab.active {
+            border-color: #667eea;
+            color: #fff;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        .section-tab:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(102,126,234,0.12);
+        }
+
+        .section-panel { display: none; }
+        .section-panel.active { display: block; }
+
+        /* ===== 历史记录表格 ===== */
+        .table-wrap {
+            overflow-x: auto;
+        }
+        .table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+        }
+        .table-wrap th, .table-wrap td {
+            padding: 0.4rem 0.4rem;
+            text-align: center;
+            border-bottom: 1px solid #f0f2f8;
+        }
+        .table-wrap th {
+            background: #f8f9ff;
+            font-weight: 600;
+            color: #667eea;
+        }
+        .table-wrap tr:last-child td { border-bottom: none; }
+        .level-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        /* ===== 统计概览 ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.5rem;
+        }
+        .stat-item {
+            background: #f8f9ff;
+            border-radius: 10px;
+            padding: 0.5rem;
+            text-align: center;
+        }
+        .stat-item .stat-num {
+            font-size: 1.3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-item .stat-label {
+            font-size: 0.65rem;
+            color: #888;
+            margin-top: 0.1rem;
+        }
+
+        /* ===== 座位区 ===== */
+        .seat-toolbar {
+            display: flex;
+            gap: 0.2rem;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 0.25rem 0.4rem;
+            background: #f8f9ff;
+            border-radius: 8px;
+            margin-bottom: 0.2rem;
+            font-size: 0.65rem;
+        }
+        .seat-toolbar .toolbar-label {
+            font-weight: 600;
+            color: #667eea;
+            margin-right: 0.1rem;
+            flex-shrink: 0;
+        }
+        .seat-tool-btn {
+            padding: 0.15rem 0.3rem;
+            border-radius: 6px;
+            border: 1.5px solid #e0e6f5;
+            background: #fafbff;
+            cursor: pointer;
+            font-size: 0.6rem;
+            font-weight: 600;
+            transition: all 0.1s;
+            color: #888;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .seat-tool-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
+        .seat-tool-btn.active { border-color: currentColor; background: currentColor; color: #fff !important; }
+        .seat-tool-btn.btn-clear { color: #ff4757; border-color: #ffd4d4; background: #fff5f5; }
+        .seat-tool-btn.btn-clear:hover { background: #ff4757; color: #fff; border-color: #ff4757; }
+        .seat-tool-count {
+            font-size: 0.6rem;
+            color: #667eea;
+            font-weight: 700;
+            margin-left: auto;
+            flex-shrink: 0;
+            background: #f0f4ff;
+            padding: 0.05rem 0.4rem;
+            border-radius: 20px;
+        }
+
+        .seat-wrap {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+            padding: 0.3rem;
+            user-select: none;
+        }
+        .seat-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 0.1rem;
+        }
+        .seat-col-label {
+            text-align: center;
+            font-size: 0.5rem;
+            font-weight: 700;
+            color: #667eea;
+            padding: 0.05rem;
+        }
+        .seat-cell {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            border: 1.5px solid #e0e6f5;
+            background: #fafbff;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5rem;
+            font-weight: 600;
+            color: #1d1d1f;
+            transition: all 0.08s;
+            position: relative;
+            min-height: 18px;
+            padding: 0.05rem;
+        }
+        .seat-cell:hover { border-color: #667eea; }
+        .seat-cell.selected { border-color: #667eea; box-shadow: 0 0 0 2px rgba(102,126,234,0.3); }
+        .seat-cell.empty { border-color: transparent; background: transparent; cursor: default; box-shadow: none; }
+        .seat-cell.historical { opacity: 0.5; cursor: default; }
+        .seat-cell.historical:hover { border-color: #e0e6f5; }
+        .seat-cell.level-1 { background: #2ecc7115; border-color: #2ecc71; }
+        .seat-cell.level-2 { background: #f1c40f20; border-color: #f1c40f; }
+        .seat-cell.level-3 { background: #f39c1225; border-color: #f39c12; }
+        .seat-cell.level-4 { background: #e74c3c1a; border-color: #e74c3c; color: #e74c3c; }
+        .seat-cell.level-5 { background: #8e44ad20; border-color: #8e44ad; color: #8e44ad; }
+        .seat-cell .seat-level-tag {
+            font-size: 0.4rem;
+            font-weight: 700;
+            padding: 0 0.12rem;
+            border-radius: 3px;
+            color: #fff;
+            line-height: 1.1;
+        }
+        .seat-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.15rem 0;
+        }
+        .seat-nav-arrow {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1.5px solid #e0e6f5;
+            background: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            color: #667eea;
+            transition: all 0.12s;
+            user-select: none;
+        }
+        .seat-nav-arrow:hover { background: #667eea; color: #fff; border-color: #667eea; }
+        .seat-nav-arrow.disabled { opacity: 0.25; cursor: default; }
+        .seat-nav-arrow.disabled:hover { background: #fff; color: #667eea; border-color: #e0e6f5; }
+        .seat-nav-info { font-size: 0.55rem; color: #888; min-width: 60px; text-align: center; }
+
+        /* ===== 加分弹窗 ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.35);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-box {
+            background: #fff;
+            border-radius: 20px;
+            padding: 1.2rem 1.5rem;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+            width: 360px;
+            max-width: 90vw;
+        }
+        .modal-box h3 {
+            font-size: 1rem;
+            color: #667eea;
+            margin-bottom: 0.8rem;
+            text-align: center;
+        }
+        .modal-box label {
+            display: block;
+            font-size: 0.8rem;
+            color: #555;
+            margin-bottom: 0.2rem;
+            font-weight: 600;
+        }
+        .modal-box select, .modal-box input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1.5px solid #e0e6f5;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            margin-bottom: 0.6rem;
+            outline: none;
+        }
+        .modal-box select:focus, .modal-box input:focus {
+            border-color: #667eea;
+        }
+        .modal-btns {
+            display: flex;
+            gap: 0.6rem;
+        }
+        .modal-btns button {
+            flex: 1;
+            padding: 0.55rem;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.12s;
+        }
+
+        /* ===== 今日总结弹窗 ===== */
+        .summary-box {
+            max-width: 480px;
+            width: 90vw;
+        }
+        .summary-box pre {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            color: #1d1d1f;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 960px) {
+            .two-col { flex-direction: column; }
+            .col-left { flex: none; }
+        }
+        @media (max-width: 480px) {
+            .noise-level-big { font-size: 1.5rem; min-width: 70px; }
+            .score-row { padding: 0.3rem 0.4rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>华棠班级管理系统</h1>
+            <p class="subtitle">班级管理一体化</p>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <ul>
+                <li><a href="../index.html">首页</a></li>
+                <li><a href="unified-management.html" class="active">班级管理一体化</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="unified-wrap">
+        <!-- ===== 两列布局 ===== -->
+        <div class="two-col">
+            <!-- 左列：小组排行榜 -->
+            <div class="col-left">
+                <div class="card">
+                    <div class="card-header">
+                        🏆 小组排行榜
+                        <span style="font-size:0.7rem;font-weight:500;opacity:0.85">实时更新</span>
+                    </div>
+                    <div class="card-body" style="padding:0.5rem">
+                        <div class="scoreboard" id="scoreboard">
+                            <!-- 由JS动态生成 -->
+                        </div>
+                        <div style="display:flex;gap:0.3rem;margin-top:0.4rem">
+                            <button id="addBonusBtn" class="btn-primary" style="flex:1;padding:0.35rem;font-size:0.75rem;border-radius:10px">➕ 加分</button>
+                            <button id="resetScoreBtn" class="btn-secondary" style="flex:1;padding:0.35rem;font-size:0.75rem;border-radius:10px">🔄 重置</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右列：噪音监控 + 深度绑定 -->
+            <div class="col-right">
+                <!-- 第一行：噪音监控 -->
+                <div class="card">
+                    <div class="card-header">
+                        🔊 吵闹监控
+                        <span style="font-size:0.7rem;font-weight:500;opacity:0.85">自动触发扣分</span>
+                    </div>
+                    <div class="card-body">
+                        <!-- 状态 -->
+                        <div class="noise-status">
+                            <div class="noise-level-big" id="noiseLevelBig">鸦雀无声</div>
+                            <div class="noise-bar-wrap">
+                                <div class="noise-bar-fill" id="noiseBarFill" style="width:0%"></div>
+                            </div>
+                            <div class="noise-level-num">
+                                <strong id="noiseLevelNum">0.0</strong>/6.0
+                            </div>
+                        </div>
+
+                        <!-- 快捷按钮 -->
+                        <div class="level-quick-btns" id="levelQuickBtns"></div>
+
+                        <!-- 滑块 -->
+                        <div class="slider-section">
+                            <input type="range" min="0" max="6" value="0" step="0.1" id="noiseSlider">
+                            <div class="slider-labels">
+                                <span style="color:#27ae60">🟢 安静</span>
+                                <span style="color:#f39c12">🟡 注意</span>
+                                <span style="color:#e74c3c">🔴 吵闹</span>
+                            </div>
+                        </div>
+
+                        <!-- 操作按钮 -->
+                        <div class="btn-row-small">
+                            <button id="recordNoiseBtn" class="btn-primary" style="flex:2">📝 记录并扣分</button>
+                            <button id="summarizeBtn" class="btn-secondary">📋 总结</button>
+                            <button id="resetNoiseBtn" class="btn-secondary" style="color:#e74c3c;border-color:#ffd4d4;background:#fff5f5">🗑️</button>
+                        </div>
+
+                        <!-- 扣分明细提示 -->
+                        <div id="deductHint" style="font-size:0.7rem;color:#888;margin-top:0.3rem;text-align:center;min-height:1.2rem">
+                            当前安静，不触发扣分
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第二行：图表 + 选项 -->
+                <div class="card">
+                    <div class="card-header">
+                        📈 噪音趋势
+                        <div class="section-tabs">
+                            <span class="section-tab active" data-tab="chart">📊 趋势</span>
+                            <span class="section-tab" data-tab="history">📋 历史</span>
+                            <span class="section-tab" data-tab="stats">📊 统计</span>
+                            <span class="section-tab" data-tab="seats">🪑 座位</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- 趋势图 -->
+                        <div class="section-panel active" id="panel-chart">
+                            <div class="chart-box" id="noiseChartBox" style="min-height:140px">
+                                <div class="empty-chart"><span>📊</span>暂无数据，记录后将显示趋势</div>
+                            </div>
+                        </div>
+
+                        <!-- 历史记录 -->
+                        <div class="section-panel" id="panel-history">
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>时间</th>
+                                            <th>等级</th>
+                                            <th>描述</th>
+                                            <th>扣分</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="historyTable">
+                                        <tr><td colspan="4" style="color:#999;padding:1rem">暂无记录</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- 统计 -->
+                        <div class="section-panel" id="panel-stats">
+                            <div class="stats-grid" id="statsGrid">
+                                <div class="stat-item"><div class="stat-num" id="statTotal">0</div><div class="stat-label">总记录</div></div>
+                                <div class="stat-item"><div class="stat-num" id="statAvg">—</div><div class="stat-label">平均等级</div></div>
+                                <div class="stat-item"><div class="stat-num" id="statMax">—</div><div class="stat-label">最高等级</div></div>
+                                <div class="stat-item"><div class="stat-num" id="statQuiet">0</div><div class="stat-label">安静次数</div></div>
+                                <div class="stat-item"><div class="stat-num" id="statTotalDeduct">0</div><div class="stat-label">总扣分</div></div>
+                                <div class="stat-item"><div class="stat-num" id="statTotalBonus">0</div><div class="stat-label">总加分</div></div>
+                            </div>
+                        </div>
+
+                        <!-- 座位记录 -->
+                        <div class="section-panel" id="panel-seats">
+                            <div class="seat-toolbar">
+                                <span class="toolbar-label">🎯 标记：</span>
+                                <div class="seat-tool-btn" data-stlv="0" style="color:#27ae60">0</div>
+                                <div class="seat-tool-btn" data-stlv="1" style="color:#f1c40f">1</div>
+                                <div class="seat-tool-btn" data-stlv="2" style="color:#f39c12">2</div>
+                                <div class="seat-tool-btn" data-stlv="3" style="color:#e74c3c">3</div>
+                                <div class="seat-tool-btn" data-stlv="4" style="color:#8e44ad">4</div>
+                                <div class="seat-tool-btn btn-clear">✕ 清除</div>
+                                <span class="seat-tool-count" id="seatCount">已选0</span>
+                            </div>
+                            <div class="seat-wrap">
+                                <div class="seat-grid" id="seatGrid"></div>
+                                <div class="seat-nav">
+                                    <div class="seat-nav-arrow" id="navPrev">◀</div>
+                                    <span class="seat-nav-info" id="navInfo">当前状态</span>
+                                    <div class="seat-nav-arrow" id="navNext">▶</div>
+                                </div>
+                            </div>
+                            <div style="font-size:0.6rem;color:#888;margin-top:0.25rem;text-align:center">
+                                💡 拖拽框选座位 → 点击等级标记 → 自动对该组扣分
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 华棠班级管理系统 | 小组加分 + 吵闹扣分 深度整合</p>
+        </div>
+    </footer>
+
+    <script>
+    (function() {
+        'use strict';
+
+        // ========== 常量配置 ==========
+        var NOISE_LEVELS = [
+            { name: '鸦雀无声', color: '#27ae60', short: '无声' },
+            { name: '窃窃私语', color: '#2ecc71', short: '私语' },
+            { name: '低声细语', color: '#f1c40f', short: '低语' },
+            { name: '交头接耳', color: '#f39c12', short: '接耳' },
+            { name: '人声嘈杂', color: '#e67e22', short: '嘈杂' },
+            { name: '人声鼎沸', color: '#e74c3c', short: '鼎沸' },
+            { name: '惊天动地', color: '#8e44ad', short: '动地' }
+        ];
+        var SEAT_COLORS = ['#27ae60', '#f1c40f', '#f39c12', '#e74c3c', '#8e44ad'];
+
+        // 小组配置（6组，每组人数与座位一致）
+        var GROUP_CONFIG = [
+            { id: 1, name: '创新组', count: 8, color: '#667eea' },
+            { id: 2, name: '探索组', count: 8, color: '#764ba2' },
+            { id: 3, name: '合作组', count: 8, color: '#f39c12' },
+            { id: 4, name: '进取组', count: 8, color: '#e67e22' },
+            { id: 5, name: '活力组', count: 8, color: '#e74c3c' },
+            { id: 6, name: '拼搏组', count: 7, color: '#27ae60' }
+        ];
+
+        // 座位 → 组映射（列索引=组索引，行=座位号）
+        // seatConfig 与 GROUP_CONFIG 对齐: 座位第0列=第6组, 第1列=第5组, ... 第5列=第1组
+        // 但实际上我们使用：座位grid的列从左到右对应 6组,5组,4组,3组,2组,1组
+        // 这样座位第1组(最右列)对应GROUP_CONFIG[5]=活力组
+        var SEAT_GROUP_MAP = [5, 4, 3, 2, 1, 0]; // seatColIndex -> groupIndex
+
+        // ========== 数据持久化 ==========
+        var STORAGE_KEY = 'unifiedManagement_v1';
+
+        function loadData() {
+            var raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+                try { return JSON.parse(raw); } catch(e) {}
+            }
+            return {
+                // 小组数据
+                groups: GROUP_CONFIG.map(function(g) {
+                    return { id: g.id, name: g.name, base: 30, bonus: 0, deduction: 0 };
+                }),
+                // 噪音历史
+                noiseHistory: [],
+                // 座位数据
+                seatData: {},
+                // 座位历史快照
+                seatHistory: [],
+                // 上一次噪音等级（用于去重）
+                lastNoiseRecorded: null
+            };
+        }
+
+        var data = loadData();
+
+        // 迁移：确保旧数据也有 base 字段
+        data.groups.forEach(function(g) {
+            if (g.base === undefined) g.base = 30;
+        });
+
+        function saveData() {
+            var toStore = {
+                groups: data.groups,
+                noiseHistory: data.noiseHistory,
+                seatData: data.seatData,
+                seatHistory: data.seatHistory,
+                lastNoiseRecorded: data.lastNoiseRecorded
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
+        }
+
+        // ========== 辅助函数 ==========
+        function lerpColor(a, b, t) {
+            var ah = parseInt(a.slice(1),16), ar=ah>>16, ag=(ah>>8)&0xff, ab=ah&0xff;
+            var bh = parseInt(b.slice(1),16), br=bh>>16, bg=(bh>>8)&0xff, bb=bh&0xff;
+            return '#'+((1<<24)+(Math.round(ar+(br-ar)*t)<<16)+(Math.round(ag+(bg-ag)*t)<<8)+Math.round(ab+(bb-ab)*t)).toString(16).slice(1);
+        }
+
+        function getGroupNetScore(g) {
+            // base为初始基数，防止扣分变负数（默认30）
+            var base = g.base !== undefined ? g.base : 30;
+            return base + g.bonus - g.deduction;
+        }
+
+        function formatTime(d) {
+            d = d || new Date();
+            return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+':'+('0'+d.getSeconds()).slice(-2);
+        }
+
+        // ========== 扣分规则 ==========
+        // 吵闹等级 → 每组扣分数
+        function getDeductionPerGroup(level) {
+            if (level < 3) return 0;           // ≤2级安静/微吵，不扣分
+            if (level < 4) return 1;           // 3级(交头接耳)：每组扣1分
+            if (level < 5) return 2;           // 4级(人声嘈杂)：每组扣2分
+            if (level < 6) return 3;           // 5级(人声鼎沸)：每组扣3分
+            return 5;                           // 6级(惊天动地)：每组扣5分
+        }
+
+        // 座位噪音等级 → 该组额外扣分
+        function getSeatDeduction(seatLevel) {
+            // 座位级别1~5，对应组扣分 0,1,2,3,5
+            if (seatLevel <= 0) return 0;
+            if (seatLevel === 1) return 0;     // 1级微吵不扣
+            if (seatLevel === 2) return 1;     // 2级较吵扣1
+            if (seatLevel === 3) return 2;     // 3级很吵扣2
+            if (seatLevel === 4) return 4;     // 4级极吵扣4
+            return 5;
+        }
+
+        // ========== DOM 引用 ==========
+        var slider = document.getElementById('noiseSlider');
+        var noiseLevelBig = document.getElementById('noiseLevelBig');
+        var noiseBarFill = document.getElementById('noiseBarFill');
+        var noiseLevelNum = document.getElementById('noiseLevelNum');
+        var levelQuickBtns = document.getElementById('levelQuickBtns');
+        var scoreboard = document.getElementById('scoreboard');
+        var deductHint = document.getElementById('deductHint');
+        var chartDiv = document.getElementById('noiseChartBox');
+        var historyTable = document.getElementById('historyTable');
+
+        // ========== 更新小组排行榜 ==========
+        function renderScoreboard() {
+            var sorted = data.groups.slice().sort(function(a, b) {
+                return getGroupNetScore(b) - getGroupNetScore(a);
+            });
+            var totalDeduction = 0;
+            var totalBonus = 0;
+            var totalBase = 0;
+            data.groups.forEach(function(g) {
+                totalDeduction += g.deduction;
+                totalBonus += g.bonus;
+                totalBase += (g.base !== undefined ? g.base : 30);
+            });
+
+            var html = '';
+            sorted.forEach(function(g, idx) {
+                var rank = idx + 1;
+                var base = g.base !== undefined ? g.base : 30;
+                var net = getGroupNetScore(g);
+                var rankClass = rank <= 3 ? ' rank-' + rank : '';
+                var badgeHtml = '';
+                if (g.deduction > 0) badgeHtml += '<span class="minus-badge">-'+g.deduction+'</span>';
+                if (g.bonus > 0) badgeHtml += '<span class="plus-badge">+'+g.bonus+'</span>';
+
+                html += '<div class="score-row' + rankClass + '">';
+                html += '<div class="score-rank">' + rank + '</div>';
+                html += '<div class="score-group-name">' + g.name + badgeHtml + '</div>';
+                html += '<div class="score-detail">';
+                html += '<span title="初始分">'+base+'</span>';
+                if (g.bonus > 0) html += '<span class="bonus">+'+g.bonus+'</span>';
+                if (g.deduction > 0) html += '<span class="deduct">-'+g.deduction+'</span>';
+                html += '</div>';
+                html += '<div class="score-value">' + net + '</div>';
+                html += '</div>';
+            });
+            scoreboard.innerHTML = html;
+
+            // 更新统计
+            document.getElementById('statTotalDeduct').textContent = totalDeduction;
+            document.getElementById('statTotalBonus').textContent = totalBonus;
+        }
+
+        // ========== 应用全局扣分（噪音记录触发） ==========
+        function applyGlobalDeduction(level) {
+            var perGroup = getDeductionPerGroup(level);
+            if (perGroup <= 0) return 0;
+
+            var totalDeduct = 0;
+            data.groups.forEach(function(g) {
+                g.deduction += perGroup;
+                totalDeduct += perGroup;
+            });
+            return totalDeduct;
+        }
+
+        // ========== 座位 → 组扣分 ==========
+        function applySeatDeduction(seatKey, seatLevel) {
+            var parts = seatKey.split('-');
+            var colIdx = parseInt(parts[0]);
+            var groupIdx = SEAT_GROUP_MAP[colIdx];
+            if (groupIdx === undefined) return 0;
+            var g = data.groups[groupIdx];
+            if (!g) return 0;
+            var deduct = getSeatDeduction(seatLevel);
+            g.deduction += deduct;
+            return deduct;
+        }
+
+        // ========== 更新噪音显示 ==========
+        function updateNoiseDisplay(v) {
+            v = parseFloat(v);
+            var vInt = Math.min(NOISE_LEVELS.length-1, Math.max(0, Math.round(v)));
+            var lv = NOISE_LEVELS[vInt];
+            var vFrac = v - Math.floor(v);
+            var dc = lv.color;
+            if (vFrac > 0.01 && vInt < NOISE_LEVELS.length-1) {
+                dc = lerpColor(NOISE_LEVELS[vInt].color, NOISE_LEVELS[vInt+1].color, vFrac);
+            } else if (vFrac < -0.01 && vInt > 0) {
+                dc = lerpColor(NOISE_LEVELS[vInt-1].color, NOISE_LEVELS[vInt].color, 1+vFrac);
+            }
+            var dt = lv.name;
+            noiseLevelBig.textContent = dt;
+            noiseLevelBig.style.color = dc;
+            noiseLevelNum.innerHTML = '<strong style="color:'+dc+'">'+v.toFixed(1)+'</strong><span style="color:#b0b8d0"> / 6.0</span>';
+            noiseBarFill.style.width = (v/6*100)+'%';
+            noiseBarFill.style.background = dc;
+            slider.value = v;
+
+            // 快捷按钮高亮
+            levelQuickBtns.querySelectorAll('.level-quick-btn').forEach(function(b, i) {
+                b.classList.toggle('active', i === vInt);
+            });
+
+            // 扣分提示
+            var perGroup = getDeductionPerGroup(v);
+            if (perGroup > 0) {
+                deductHint.innerHTML = '⚠️ 当前等级 <strong>'+lv.name+'</strong>，每组扣 <strong style="color:#e74c3c">'+perGroup+'</strong> 分，共 <strong style="color:#e74c3c">'+(perGroup*6)+'</strong> 分';
+                deductHint.style.color = '#e74c3c';
+            } else {
+                deductHint.innerHTML = '✅ 当前安静（<'+NOISE_LEVELS[3].name+'），不触发扣分';
+                deductHint.style.color = '#27ae60';
+            }
+        }
+
+        // ========== 记录噪音并扣分 ==========
+        function recordNoise() {
+            var v = parseFloat(slider.value);
+            // 去重：如果和上次一样则不重复记录
+            if (data.lastNoiseRecorded !== null && Math.abs(v - data.lastNoiseRecorded) < 0.01) {
+                // 但允许手动强制记录
+                // 为简化，这里仍然记录但提示
+            }
+            data.lastNoiseRecorded = v;
+
+            var vInt = Math.min(NOISE_LEVELS.length-1, Math.max(0, Math.round(v)));
+            var lv = NOISE_LEVELS[vInt];
+
+            // 计算扣分
+            var totalDeduct = applyGlobalDeduction(v);
+
+            var now = new Date();
+            var ts = formatTime(now);
+
+            data.noiseHistory.push({
+                time: ts,
+                levelNum: v,
+                level: lv.name,
+                color: lv.color,
+                deduction: totalDeduct,
+                recorder: '班干部'
+            });
+
+            saveData();
+            renderScoreboard();
+            renderHistoryTable();
+            drawChart();
+            renderStats();
+            updateNoiseDisplay(v);
+
+            // 弹出反馈
+            if (totalDeduct > 0) {
+                deductHint.innerHTML = '✅ 已记录 <strong>'+lv.name+'</strong>，共扣 <strong style="color:#e74c3c">'+totalDeduct+'</strong> 分';
+                deductHint.style.color = '#e74c3c';
+                setTimeout(function() {
+                    updateNoiseDisplay(parseFloat(slider.value));
+                }, 1500);
+            } else {
+                deductHint.innerHTML = '✅ 已记录 <strong>'+lv.name+'</strong>，无扣分';
+                deductHint.style.color = '#27ae60';
+                setTimeout(function() {
+                    updateNoiseDisplay(parseFloat(slider.value));
+                }, 1000);
+            }
+        }
+
+        // ========== 渲染历史记录表格 ==========
+        function renderHistoryTable() {
+            if (!data.noiseHistory.length) {
+                historyTable.innerHTML = '<tr><td colspan="4" style="color:#999;padding:1rem">暂无记录</td></tr>';
+                return;
+            }
+            var rows = data.noiseHistory.slice(-50).reverse();
+            var html = '';
+            for (var i = 0; i < rows.length; i++) {
+                var r = rows[i];
+                var val = r.levelNum !== undefined ? r.levelNum : 0;
+                html += '<tr>';
+                html += '<td>'+r.time+'</td>';
+                html += '<td><span class="level-dot" style="background:'+(r.color||NOISE_LEVELS[0].color)+'"></span>'+val.toFixed(1)+'</td>';
+                html += '<td>'+r.level+'</td>';
+                html += '<td>'+(r.deduction > 0 ? '<span style="color:#e74c3c">-'+r.deduction+'</span>' : '<span style="color:#999">0</span>')+'</td>';
+                html += '</tr>';
+            }
+            historyTable.innerHTML = html;
+        }
+
+        // ========== 渲染统计 ==========
+        function renderStats() {
+            var total = data.noiseHistory.length;
+            document.getElementById('statTotal').textContent = total;
+            if (!total) {
+                document.getElementById('statAvg').textContent = '—';
+                document.getElementById('statMax').textContent = '—';
+                document.getElementById('statQuiet').textContent = '0';
+                return;
+            }
+            var sum = 0, maxV = 0, quiet = 0;
+            data.noiseHistory.forEach(function(r) {
+                var val = r.levelNum !== undefined ? r.levelNum : 0;
+                if (val > maxV) maxV = val;
+                sum += val;
+                if (val < 0.5) quiet++;
+            });
+            document.getElementById('statAvg').textContent = (sum/total).toFixed(1);
+            document.getElementById('statMax').textContent = NOISE_LEVELS[Math.min(NOISE_LEVELS.length-1, Math.max(0, Math.round(maxV)))].name;
+            document.getElementById('statQuiet').textContent = quiet;
+        }
+
+        // ========== 绘制图表 ==========
+        function drawChart() {
+            if (!data.noiseHistory.length) {
+                chartDiv.innerHTML = '<div class="empty-chart"><span>📊</span>暂无数据</div>';
+                return;
+            }
+            var box = chartDiv.getBoundingClientRect();
+            var w = Math.max(400, box.width - 32);
+            var h = Math.max(130, box.height - 32);
+            chartDiv.innerHTML = '<canvas id="noiseCanvas" width="'+w+'" height="'+h+'"></canvas>';
+            var canvas = document.getElementById('noiseCanvas');
+            var ctx = canvas.getContext('2d');
+            var dpr = window.devicePixelRatio || 1;
+            canvas.width = w * dpr;
+            canvas.height = h * dpr;
+            canvas.style.width = w + 'px';
+            canvas.style.height = h + 'px';
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, w, h);
+
+            var pad = {top: 15, bottom: 25, left: 30, right: 15};
+            var pw = w - pad.left - pad.right;
+            var ph = h - pad.top - pad.bottom;
+            var ml = NOISE_LEVELS.length - 1;
+            var ct = data.noiseHistory.length;
+
+            // 网格线
+            ctx.strokeStyle = '#eef0f8';
+            ctx.lineWidth = 1;
+            for (var gi = 0; gi <= ml; gi++) {
+                var gy = pad.top + ph - (gi/ml)*ph;
+                ctx.beginPath(); ctx.moveTo(pad.left, gy); ctx.lineTo(w - pad.right, gy); ctx.stroke();
+                ctx.fillStyle = '#b0b8d0';
+                ctx.font = '10px -apple-system,sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(NOISE_LEVELS[gi].short, pad.left - 6, gy + 3);
+            }
+
+            // 数据点
+            var pts = [];
+            for (var j = 0; j < ct; j++) {
+                var vj = data.noiseHistory[j].levelNum !== undefined ? data.noiseHistory[j].levelNum : 0;
+                if (vj < 0) vj = 0;
+                pts.push({
+                    x: pad.left + (j / Math.max(ct-1, 1)) * pw,
+                    y: pad.top + ph - (vj / ml) * ph,
+                    level: vj
+                });
+            }
+
+            // 填充区域
+            ctx.beginPath();
+            ctx.moveTo(pts[0].x, pad.top + ph);
+            for (var a = 0; a < pts.length; a++) ctx.lineTo(pts[a].x, pts[a].y);
+            ctx.lineTo(pts[pts.length-1].x, pad.top + ph);
+            ctx.closePath();
+            var grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + ph);
+            grad.addColorStop(0, 'rgba(102,126,234,0.1)');
+            grad.addColorStop(1, 'rgba(102,126,234,0.01)');
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // 数据线
+            for (var s = 0; s < pts.length - 1; s++) {
+                var pk = Math.min(ml, Math.max(0, Math.round(pts[s].level)));
+                ctx.strokeStyle = NOISE_LEVELS[pk].color;
+                ctx.lineWidth = 2;
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(pts[s].x, pts[s].y);
+                ctx.lineTo(pts[s+1].x, pts[s+1].y);
+                ctx.stroke();
+            }
+
+            // 数据点
+            for (var k = 0; k < pts.length; k++) {
+                var pi = Math.min(ml, Math.max(0, Math.round(pts[k].level)));
+                ctx.fillStyle = NOISE_LEVELS[pi].color;
+                ctx.beginPath();
+                ctx.arc(pts[k].x, pts[k].y, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(pts[k].x, pts[k].y, 4, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        }
+
+        // ========== 座位系统 ==========
+        var seatData = data.seatData;
+        var seatHistory = data.seatHistory;
+        var historyViewIndex = -1; // -1 = live
+        var selectedSeats = {};
+        var isDragging = false;
+        var dragStart = null;
+
+        // 座位布局：列从左到右 = 6组,5组,4组,3组,2组,1组
+        var seatConfig = [
+            { group: 6, count: 8 },
+            { group: 5, count: 8 },
+            { group: 4, count: 8 },
+            { group: 3, count: 8 },
+            { group: 2, count: 8 },
+            { group: 1, count: 7 }
+        ];
+
+        function seatKey(gi, si) { return gi + '-' + si; }
+
+        function saveSeatSnapshot() {
+            var snapshot = {};
+            for (var k in seatData) snapshot[k] = seatData[k];
+            var ts = formatTime();
+            seatHistory.push({time: ts, levels: snapshot});
+            data.seatHistory = seatHistory;
+            historyViewIndex = -1;
+            saveData();
+            updateSeatNav();
+        }
+
+        function renderSeats() {
+            var isHistorical = historyViewIndex >= 0 && historyViewIndex < seatHistory.length;
+            var displayData = isHistorical ? seatHistory[historyViewIndex].levels : seatData;
+            var html = '';
+            // 列标签
+            for (var g = 0; g < seatConfig.length; g++) {
+                html += '<div class="seat-col-label">' + seatConfig[g].group + '组</div>';
+            }
+            // 行
+            for (var r = 0; r < 8; r++) {
+                for (var g = 0; g < seatConfig.length; g++) {
+                    var sn = r + 1;
+                    if (sn > seatConfig[g].count) {
+                        html += '<div class="seat-cell empty"></div>';
+                        continue;
+                    }
+                    var key = seatKey(g, r);
+                    var sv = displayData[key] || 0;
+                    var isSel = selectedSeats[key] || false;
+                    var cls = 'seat-cell' +
+                        (isSel ? ' selected' : '') +
+                        (sv > 0 ? ' level-' + sv : '') +
+                        (isHistorical ? ' historical' : '');
+                    html += '<div class="' + cls + '" data-g="' + g + '" data-s="' + r + '">';
+                    html += '<span>' + sn + '</span>';
+                    if (sv > 0) {
+                        html += '<div class="seat-level-tag" style="background:' + SEAT_COLORS[sv-1] + '">' + sv + '</div>';
+                    }
+                    html += '</div>';
+                }
+            }
+            document.getElementById('seatGrid').innerHTML = html;
+            updateSeatCount();
+            updateSeatNav();
+
+            if (!isHistorical) {
+                var cells = document.querySelectorAll('#seatGrid .seat-cell:not(.empty)');
+                for (var ci = 0; ci < cells.length; ci++) {
+                    (function(cell) {
+                        cell.addEventListener('mousedown', function(e) {
+                            e.preventDefault();
+                            var gi = parseInt(this.getAttribute('data-g'));
+                            var si = parseInt(this.getAttribute('data-s'));
+                            isDragging = true;
+                            dragStart = {gi: gi, si: si};
+                            if (!e.ctrlKey && !e.metaKey && !e.shiftKey) selectedSeats = {};
+                            selectedSeats[seatKey(gi, si)] = true;
+                            renderSeatsSelection();
+                        });
+                    })(cells[ci]);
+                }
+            }
+        }
+
+        function renderSeatsSelection() {
+            var cells = document.querySelectorAll('#seatGrid .seat-cell:not(.empty)');
+            for (var i = 0; i < cells.length; i++) {
+                var g = parseInt(cells[i].getAttribute('data-g'));
+                var s = parseInt(cells[i].getAttribute('data-s'));
+                if (selectedSeats[seatKey(g, s)]) {
+                    cells[i].classList.add('selected');
+                } else {
+                    cells[i].classList.remove('selected');
+                }
+            }
+            updateSeatCount();
+        }
+
+        function updateSeatCount() {
+            document.getElementById('seatCount').textContent = '已选' + Object.keys(selectedSeats).length;
+        }
+
+        function updateSeatNav() {
+            var navInfo = document.getElementById('navInfo');
+            var prevBtn = document.getElementById('navPrev');
+            var nextBtn = document.getElementById('navNext');
+            var total = seatHistory.length;
+            if (total === 0) {
+                navInfo.textContent = '暂无快照';
+                prevBtn.classList.add('disabled');
+                nextBtn.classList.add('disabled');
+                return;
+            }
+            if (historyViewIndex === -1) {
+                navInfo.textContent = '当前 · 共' + total + '次';
+                prevBtn.classList.remove('disabled');
+                nextBtn.classList.add('disabled');
+            } else {
+                navInfo.textContent = '#' + (historyViewIndex+1) + '/' + total + ' ' + seatHistory[historyViewIndex].time;
+                prevBtn.classList.toggle('disabled', historyViewIndex === 0);
+                nextBtn.classList.remove('disabled');
+            }
+        }
+
+        // ========== 座位→组扣分逻辑（核心绑定） ==========
+        function applySeatToGroupDeduction() {
+            var keys = Object.keys(selectedSeats);
+            if (keys.length === 0) return 0;
+            var totalDeducted = 0;
+            var groupsAffected = {};
+            for (var ki = 0; ki < keys.length; ki++) {
+                var key = keys[ki];
+                var sv = seatData[key] || 0;
+                if (sv <= 0) continue;
+                var d = applySeatDeduction(key, sv);
+                if (d > 0) {
+                    totalDeducted += d;
+                    var parts = key.split('-');
+                    var colIdx = parseInt(parts[0]);
+                    var groupIdx = SEAT_GROUP_MAP[colIdx];
+                    var g = data.groups[groupIdx];
+                    if (g) groupsAffected[g.name] = (groupsAffected[g.name] || 0) + d;
+                }
+            }
+            if (totalDeducted > 0) {
+                var detail = Object.keys(groupsAffected).map(function(name) {
+                    return name + '(-' + groupsAffected[name] + ')';
+                }).join(' ');
+                // 弹出反馈
+                var hint = document.createElement('div');
+                hint.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#fff;border-radius:12px;padding:0.6rem 1.2rem;box-shadow:0 4px 20px rgba(0,0,0,0.15);z-index:3000;font-size:0.8rem;border:2px solid #e74c3c';
+                hint.innerHTML = '✅ 座位扣分完成：' + detail + '<br><span style="color:#e74c3c">共扣 ' + totalDeducted + ' 分</span>';
+                document.body.appendChild(hint);
+                setTimeout(function() { document.body.removeChild(hint); }, 3000);
+            }
+            return totalDeducted;
+        }
+
+        // ========== 今日总结 ==========
+        function generateSummary() {
+            var total = data.noiseHistory.length;
+            if (!total) return '暂无数据，无法生成总结。';
+            var sum = 0, maxV = 0, minV = 99, quiet = 0, noisy = 0, totalDeduct = 0;
+            for (var si = 0; si < data.noiseHistory.length; si++) {
+                var r = data.noiseHistory[si];
+                var val = r.levelNum !== undefined ? r.levelNum : 0;
+                sum += val;
+                if (val > maxV) maxV = val;
+                if (val < minV) minV = val;
+                if (val < 1) quiet++;
+                if (val >= 4) noisy++;
+                totalDeduct += r.deduction || 0;
+            }
+            var avg = (sum / total).toFixed(1);
+            var maxName = NOISE_LEVELS[Math.min(NOISE_LEVELS.length-1, Math.round(maxV))].name;
+            var minName = NOISE_LEVELS[Math.min(NOISE_LEVELS.length-1, Math.round(minV))].name;
+            var status = avg < 1.5 ? '🟢 整体安静' : (avg < 3 ? '🟡 轻度吵闹' : (avg < 4.5 ? '🟠 中度吵闹' : '🔴 非常吵闹'));
+
+            // 排行榜
+            var sorted = data.groups.slice().sort(function(a,b){return getGroupNetScore(b)-getGroupNetScore(a);});
+            var rankStr = sorted.map(function(g,i){ return (i+1)+'. '+g.name+' ('+getGroupNetScore(g)+'分)'; }).join('\n');
+
+            var baseVal = data.groups[0].base !== undefined ? data.groups[0].base : 30;
+            var res = '🏫 班级管理今日总结\n';
+            res += '━━━━━━━━━━━━━━━━\n';
+            res += '📊 噪音统计\n';
+            res += '  总记录：' + total + ' 条\n';
+            res += '  平均等级：' + avg + ' ' + status + '\n';
+            res += '  最高：' + maxName + ' 最低：' + minName + '\n';
+            res += '  安静次数：' + quiet + '  |  吵闹(≥4级)：' + noisy + '\n';
+            res += '  噪音总扣分：' + totalDeduct + '\n\n';
+            res += '🏆 小组排名（初始' + baseVal + '分）\n';
+            res += '  ' + rankStr + '\n\n';
+            res += '📝 各小组明细（初始' + baseVal + '分）\n';
+            data.groups.forEach(function(g) {
+                var base = g.base !== undefined ? g.base : 30;
+                res += '  ' + g.name + '：' + base + ' +' + g.bonus + ' -' + g.deduction + ' = ' + getGroupNetScore(g) + '分\n';
+            });
+            if (data.noiseHistory.length >= 2) {
+                res += '\n⏰ 记录时段：' + data.noiseHistory[0].time + ' ~ ' + data.noiseHistory[data.noiseHistory.length-1].time;
+            }
+            return res;
+        }
+
+        // ========== 加分弹窗 ==========
+        function showAddBonusModal() {
+            var overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML =
+                '<div class="modal-box">' +
+                '<h3>➕ 为小组加分</h3>' +
+                '<label>选择小组</label>' +
+                '<select id="bonusGroupSelect">' +
+                data.groups.map(function(g) {
+                    return '<option value="'+g.id+'">'+g.name+'（当前得分：'+getGroupNetScore(g)+'）</option>';
+                }).join('') +
+                '</select>' +
+                '<label>加分分值</label>' +
+                '<input type="number" id="bonusPointsInput" value="1" min="1" max="100" step="1">' +
+                '<label>加分原因（可选）</label>' +
+                '<input type="text" id="bonusReasonInput" placeholder="如：课堂表现优秀" maxlength="50">' +
+                '<div class="modal-btns">' +
+                '<button id="confirmBonusBtn" class="btn-primary">确认加分</button>' +
+                '<button id="cancelBonusBtn" class="btn-secondary">取消</button>' +
+                '</div>' +
+                '</div>';
+            document.body.appendChild(overlay);
+
+            document.getElementById('confirmBonusBtn').addEventListener('click', function() {
+                var gid = parseInt(document.getElementById('bonusGroupSelect').value);
+                var pts = parseInt(document.getElementById('bonusPointsInput').value) || 1;
+                var reason = document.getElementById('bonusReasonInput').value || '手动加分';
+                var g = null;
+                for (var gi = 0; gi < data.groups.length; gi++) {
+                    if (data.groups[gi].id === gid) { g = data.groups[gi]; break; }
+                }
+                if (g) {
+                    g.bonus += pts;
+                    saveData();
+                    renderScoreboard();
+                    // 同时记录到噪音历史（作为加分事件）
+                    var ts = formatTime();
+                    data.noiseHistory.push({
+                        time: ts,
+                        levelNum: -1,
+                        level: '🎉 ' + g.name + ' +' + pts + '分(' + reason + ')',
+                        color: '#27ae60',
+                        deduction: 0,
+                        recorder: '老师',
+                        isBonus: true
+                    });
+                    saveData();
+                    renderHistoryTable();
+                    renderStats();
+
+                    // 反馈
+                    var hint = document.createElement('div');
+                    hint.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#e8f5e9;border-radius:12px;padding:0.6rem 1.2rem;box-shadow:0 4px 20px rgba(0,0,0,0.15);z-index:3000;font-size:0.85rem;border:2px solid #27ae60';
+                    hint.innerHTML = '✅ <strong>'+g.name+'</strong> +'+pts+'分 （' + reason + '）';
+                    document.body.appendChild(hint);
+                    setTimeout(function() { document.body.removeChild(hint); }, 2500);
+                }
+                document.body.removeChild(overlay);
+            });
+            document.getElementById('cancelBonusBtn').addEventListener('click', function() {
+                document.body.removeChild(overlay);
+            });
+        }
+
+        // ========== 初始化事件绑定 ==========
+        function init() {
+            // 滑块
+            slider.addEventListener('input', function() {
+                updateNoiseDisplay(parseFloat(slider.value));
+            });
+
+            // 记录按钮
+            document.getElementById('recordNoiseBtn').addEventListener('click', recordNoise);
+
+            // 快捷按钮
+            for (var i = 0; i < NOISE_LEVELS.length; i++) {
+                var btn = document.createElement('div');
+                btn.className = 'level-quick-btn';
+                btn.textContent = NOISE_LEVELS[i].short;
+                btn.style.color = NOISE_LEVELS[i].color;
+                (function(idx) {
+                    btn.addEventListener('click', function() {
+                        updateNoiseDisplay(idx);
+                        recordNoise();
+                    });
+                })(i);
+                levelQuickBtns.appendChild(btn);
+            }
+
+            // 加分
+            document.getElementById('addBonusBtn').addEventListener('click', showAddBonusModal);
+
+            // 重置小组
+            document.getElementById('resetScoreBtn').addEventListener('click', function() {
+                if (!confirm('确定重置所有小组的加分和扣分记录？（初始分数30分保留）')) return;
+                data.groups.forEach(function(g) { g.bonus = 0; g.deduction = 0; g.base = 30; });
+                saveData();
+                renderScoreboard();
+            });
+
+            // 重置噪音
+            document.getElementById('resetNoiseBtn').addEventListener('click', function() {
+                if (!confirm('确定清空所有噪音记录？')) return;
+                data.noiseHistory = [];
+                data.lastNoiseRecorded = null;
+                saveData();
+                renderHistoryTable();
+                drawChart();
+                renderStats();
+                updateNoiseDisplay(0);
+            });
+
+            // 总结
+            document.getElementById('summarizeBtn').addEventListener('click', function() {
+                var msg = generateSummary();
+                var overlay = document.createElement('div');
+                overlay.className = 'modal-overlay';
+                overlay.innerHTML =
+                    '<div class="modal-box summary-box">' +
+                    '<pre>' + msg + '</pre>' +
+                    '<button id="closeSummaryBtn" class="btn-primary" style="width:100%;padding:0.6rem;border-radius:12px;border:none;font-weight:600;font-size:0.85rem;cursor:pointer;margin-top:0.5rem">关闭</button>' +
+                    '</div>';
+                document.body.appendChild(overlay);
+                document.getElementById('closeSummaryBtn').addEventListener('click', function() {
+                    document.body.removeChild(overlay);
+                });
+            });
+
+            // ===== 选项卡 =====
+            document.querySelectorAll('.section-tab').forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    var target = this.getAttribute('data-tab');
+                    document.querySelectorAll('.section-tab').forEach(function(t) { t.classList.remove('active'); });
+                    this.classList.add('active');
+                    document.querySelectorAll('.section-panel').forEach(function(p) { p.classList.remove('active'); });
+                    document.getElementById('panel-' + target).classList.add('active');
+                    if (target === 'chart') drawChart();
+                    if (target === 'history') renderHistoryTable();
+                    if (target === 'stats') renderStats();
+                    if (target === 'seats') { selectedSeats = {}; renderSeats(); }
+                });
+            });
+
+            // ===== 座位 =====
+            // 鼠标拖拽框选
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging || !dragStart) return;
+                var el = document.elementFromPoint(e.clientX, e.clientY);
+                if (!el || !el.classList.contains('seat-cell') || el.classList.contains('empty') || el.classList.contains('historical')) return;
+                var gi = parseInt(el.getAttribute('data-g'));
+                var si = parseInt(el.getAttribute('data-s'));
+                if (isNaN(gi) || isNaN(si)) return;
+                var minG = Math.min(dragStart.gi, gi);
+                var maxG = Math.max(dragStart.gi, gi);
+                var minS = Math.min(dragStart.si, si);
+                var maxS = Math.max(dragStart.si, si);
+                var ns = {};
+                if (e.ctrlKey || e.metaKey) { for (var k in selectedSeats) ns[k] = true; }
+                for (var g = minG; g <= maxG; g++) {
+                    for (var s = minS; s <= maxS; s++) {
+                        if (s + 1 <= seatConfig[g].count) ns[seatKey(g, s)] = true;
+                    }
+                }
+                selectedSeats = ns;
+                renderSeatsSelection();
+            });
+            document.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    dragStart = null;
+                }
+            });
+
+            // 座位导航
+            document.getElementById('navPrev').addEventListener('click', function() {
+                if (seatHistory.length === 0) return;
+                if (historyViewIndex === -1) historyViewIndex = seatHistory.length - 1;
+                else if (historyViewIndex > 0) historyViewIndex--;
+                else return;
+                renderSeats();
+            });
+            document.getElementById('navNext').addEventListener('click', function() {
+                if (seatHistory.length === 0) return;
+                if (historyViewIndex === seatHistory.length - 1) {
+                    historyViewIndex = -1;
+                    renderSeats();
+                    return;
+                }
+                if (historyViewIndex === -1) return;
+                historyViewIndex++;
+                renderSeats();
+            });
+
+            // 座位等级标记 + 自动触发扣分（核心绑定）
+            document.querySelectorAll('.seat-tool-btn[data-stlv]').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    if (historyViewIndex !== -1) return;
+                    var lv = parseInt(this.getAttribute('data-stlv'));
+                    var keys = Object.keys(selectedSeats);
+                    if (keys.length === 0) return;
+                    keys.forEach(function(key) {
+                        if (lv === 0) delete seatData[key];
+                        else seatData[key] = lv;
+                    });
+                    data.seatData = seatData;
+                    saveData();
+                    // 保存快照
+                    saveSeatSnapshot();
+                    // 核心：标记座位后自动对所属小组扣分！
+                    applySeatToGroupDeduction();
+                    saveData();
+                    renderScoreboard();
+                    renderSeats();
+                });
+            });
+
+            // 清除选中座位的标记
+            document.querySelector('.seat-tool-btn.btn-clear').addEventListener('click', function() {
+                if (historyViewIndex !== -1) return;
+                var keys = Object.keys(selectedSeats);
+                if (keys.length === 0) return;
+                keys.forEach(function(key) { delete seatData[key]; });
+                data.seatData = seatData;
+                saveData();
+                saveSeatSnapshot();
+                renderSeats();
+            });
+
+            // ===== 初始渲染 =====
+            updateNoiseDisplay(0);
+            renderScoreboard();
+            renderHistoryTable();
+            renderStats();
+            if (data.noiseHistory.length) drawChart();
+            renderSeats();
+        }
+
+        // ===== 启动 =====
+        init();
+
+        // 暴露给全局用于调试
+        window.__unifiedData = data;
+    })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>午休吵闹监控 - 华棠班级管理系统</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+    <style>
+        /* 午休监控专用样式 — 与一体化风格统一 */
+        body { background: #f0f4ff; }
+        .noise-wrap { max-width: 800px; margin: 0 auto; padding: 20px; }
+        
+        .noise-card {
+            background: #fff; border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,.05);
+            padding: 24px; margin-bottom: 20px;
+        }
+        .noise-card h3 {
+            font-size: 1.1rem; color: #667eea; margin-bottom: 16px;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .level-big {
+            text-align: center; padding: 20px;
+        }
+        .level-big .level-name {
+            font-size: 3rem; font-weight: 800; transition: color .3s;
+            margin: 8px 0;
+        }
+        .level-big .level-idom {
+            font-size: 1.1rem; color: #999;
+        }
+
+        .slider-area { padding: 10px 0; }
+        .slider-area input[type="range"] {
+            width: 100%; height: 10px; cursor: pointer;
+            -webkit-appearance: none; appearance: none; border-radius: 10px;
+            background: linear-gradient(to right, #27ae60, #2ecc71, #f1c40f, #f39c12, #e67e22, #e74c3c, #8e44ad);
+            outline: none;
+        }
+        .slider-area input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%;
+            background: #fff; border: 3px solid #667eea; cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,.15);
+        }
+        .slider-labels {
+            display: flex; justify-content: space-between; margin-top: 6px;
+            font-size: .7rem; color: #999;
+        }
+
+        .record-actions {
+            display: flex; gap: 10px; justify-content: center; margin-top: 16px;
+        }
+        .record-actions button {
+            padding: 10px 24px; border-radius: 30px; font-size: .9rem;
+            font-weight: 700; border: none; cursor: pointer; transition: all .15s;
+        }
+        .btn-record {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff; box-shadow: 0 4px 14px rgba(102,126,234,.3);
+        }
+        .btn-record:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,.4); }
+        .btn-reset {
+            background: #fff; color: #e74c3c; border: 2px solid #ffd4d4;
+        }
+        .btn-reset:hover { background: #ff4757; color: #fff; border-color: #ff4757; }
+
+        canvas { width: 100% !important; height: auto !important; max-height: 200px; }
+
+        table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+        th, td { padding: 8px 10px; text-align: center; border-bottom: 1px solid #f0f2f8; }
+        th { background: #f8f9ff; color: #667eea; font-weight: 600; }
+
+        .stats-mini {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px;
+        }
+        .stat-mini {
+            background: #f8f9ff; border-radius: 10px; padding: 12px; text-align: center;
+        }
+        .stat-mini .num {
+            font-size: 1.5rem; font-weight: 800; color: #667eea;
+        }
+        .stat-mini .label {
+            font-size: .7rem; color: #999; margin-top: 4px;
+        }
+
+        @media (max-width: 600px) {
+            .stats-mini { grid-template-columns: repeat(2, 1fr); }
+            .level-big .level-name { font-size: 2rem; }
+            .slider-labels { font-size: .55rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>华棠班级管理系统</h1>
+            <p class="subtitle">午休吵闹监控</p>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <ul>
+                <li><a href="../index.html">首页</a></li>
+                <li><a href="unified-v2.html" style="color:#f1c40f;font-weight:800;">🌟 班级管理一体化 v2</a></li>
+                <li><a href="noise-monitor.html">午休吵闹监控</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <div class="noise-wrap">
+            <!-- 统计概览 -->
+            <div class="noise-card">
+                <h3>📊 今日概览</h3>
+                <div class="stats-mini" id="statsContainer">
+                    <div class="stat-mini"><div class="num" id="statTotal">0</div><div class="label">总记录</div></div>
+                    <div class="stat-mini"><div class="num" id="statAvg">—</div><div class="label">平均等级</div></div>
+                    <div class="stat-mini"><div class="num" id="statMax">—</div><div class="label">最高等级</div></div>
+                    <div class="stat-mini"><div class="num" id="statQuiet">0</div><div class="label">安静(≤1级)</div></div>
+                </div>
+            </div>
+
+            <!-- 控制面板 -->
+            <div class="noise-card">
+                <h3>🎛️ 当前监控</h3>
+                <div class="level-big">
+                    <div class="level-idom" id="currentIdiom">鸦雀无声</div>
+                    <div class="level-name" id="currentLevel" style="color:#27ae60;">鸦雀无声</div>
+                    <div style="font-size:.8rem;color:#999;">等级 <strong id="currentLevelNum">0</strong> / 6</div>
+                </div>
+                <div class="slider-area">
+                    <input type="range" min="0" max="6" value="0" step="0.1" class="slider" id="noiseSlider">
+                    <div class="slider-labels">
+                        <span>安静</span>
+                        <span>低语</span>
+                        <span>嘈杂</span>
+                        <span>鼎沸</span>
+                        <span>动地</span>
+                    </div>
+                </div>
+                <div class="record-actions">
+                    <button class="btn-record" id="recordButton">📝 记录当前</button>
+                    <button class="btn-reset" id="resetButton">🗑️ 清空今日</button>
+                </div>
+            </div>
+
+            <!-- 趋势图 -->
+            <div class="noise-card">
+                <h3>📈 吵闹趋势</h3>
+                <div id="chartContainer" style="text-align:center;color:#999;padding:20px;">暂无数据</div>
+            </div>
+
+            <!-- 历史记录 -->
+            <div class="noise-card">
+                <h3>📋 今日记录</h3>
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr><th>时间</th><th>等级</th><th>描述</th><th>记录人</th></tr>
+                        </thead>
+                        <tbody id="historyTable">
+                            <tr><td colspan="4" style="color:#999;padding:20px;">暂无记录</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 推荐入口 -->
+            <div class="noise-card" style="text-align:center;">
+                <p style="color:#999;font-size:.85rem;">💡 推荐使用「班级管理一体化」— 吵闹监控 + 小组加分 + 座位管理 深度整合</p>
+                <a href="unified-v2.html" style="display:inline-block;margin-top:10px;padding:10px 24px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-radius:30px;text-decoration:none;font-weight:700;font-size:.9rem;">🌟 打开一体化管理</a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 华棠班级管理系统 | 专为教师设计的教育工具</p>
+        </div>
+    </footer>
+
+    <script src="../js/noise-monitor.js"></script>
+</body>
+</html>

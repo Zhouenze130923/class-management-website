@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小组加分 - 华棠班级管理系统</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+    <style>
+        body { background: #f0f4ff; }
+        .redirect-card {
+            max-width: 500px; margin: 60px auto; text-align: center;
+            background: #fff; border-radius: 20px; padding: 40px 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.06);
+        }
+        .redirect-card .icon { font-size: 3rem; margin-bottom: 16px; }
+        .redirect-card h2 { font-size: 1.3rem; color: #1a1a2e; margin-bottom: 10px; }
+        .redirect-card p { color: #666; font-size: .9rem; line-height: 1.6; margin-bottom: 24px; }
+        .redirect-card .btn-go {
+            display: inline-block; padding: 12px 32px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff; border-radius: 40px; text-decoration: none;
+            font-weight: 700; font-size: 1rem;
+            box-shadow: 0 4px 14px rgba(102,126,234,.3);
+            transition: all .2s;
+        }
+        .redirect-card .btn-go:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,.4); }
+        .features-mini {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+            margin: 20px 0;
+        }
+        .feature-mini {
+            background: #f8f9ff; border-radius: 10px; padding: 14px 10px;
+        }
+        .feature-mini .f-icon { font-size: 1.3rem; }
+        .feature-mini .f-name { font-size: .75rem; color: #555; margin-top: 4px; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>华棠班级管理系统</h1>
+            <p class="subtitle">小组加分</p>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <ul>
+                <li><a href="../index.html">首页</a></li>
+                <li><a href="unified-v2.html" style="color:#f1c40f;font-weight:800;">🌟 班级管理一体化 v2</a></li>
+                <li><a href="noise-monitor.html">午休吵闹监控</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            <div class="redirect-card">
+                <div class="icon">🏆</div>
+                <h2>小组加分功能已整合</h2>
+                <p>小组加分现已合并到「班级管理一体化 v2」中，支持实时排名、批量加分、事由记录、小组趋势图，功能更强大。</p>
+                
+                <div class="features-mini">
+                    <div class="feature-mini">
+                        <div class="f-icon">🏆</div>
+                        <div class="f-name">实时排名</div>
+                    </div>
+                    <div class="feature-mini">
+                        <div class="f-icon">⚡</div>
+                        <div class="f-name">批量加减</div>
+                    </div>
+                    <div class="feature-mini">
+                        <div class="f-icon">📈</div>
+                        <div class="f-name">趋势图</div>
+                    </div>
+                </div>
+
+                <a href="unified-v2.html" class="btn-go">🌟 打开一体化管理</a>
+                <p style="margin-top:16px;font-size:.8rem;color:#b0b8d0;">
+                    小组评分数据已自动同步，无需重新配置
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 华棠班级管理系统 | 专为教师设计的教育工具</p>
+        </div>
+    </footer>
+</body>
+</html>

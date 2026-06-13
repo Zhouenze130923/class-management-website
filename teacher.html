@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>教师端 · 班级呼叫</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#0a0e17;color:#e0e6f0;-webkit-font-smoothing:antialiased}
+.app{max-width:700px;margin:0 auto;padding:1rem;min-height:100vh}
+
+/* 密码 */
+.pw-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;text-align:center}
+.pw-screen .icon{font-size:2.5rem;margin-bottom:.5rem}
+.pw-screen h2{font-size:1.1rem;color:#a78bfa;margin-bottom:.3rem}
+.pw-screen p{color:#6b7280;font-size:.75rem;margin-bottom:1rem}
+.pw-screen input{width:100%;max-width:280px;padding:.5rem .8rem;border-radius:12px;border:1.5px solid #1e2a3a;background:#0d1520;color:#e0e6f0;font-size:.9rem;outline:none;text-align:center;letter-spacing:3px;margin-bottom:.5rem}
+.pw-screen input:focus{border-color:#a78bfa}
+.pw-screen .pw-btn{width:100%;max-width:280px;padding:.5rem;border-radius:10px;border:none;background:linear-gradient(135deg,#a78bfa,#8b5cf6);color:#fff;font-weight:700;font-size:.85rem;cursor:pointer}
+.pw-screen .pw-btn:hover{opacity:.9}
+.pw-screen .err{color:#ef4444;font-size:.75rem;min-height:1rem}
+
+/* 主界面 */
+.main{display:none}
+.main.show{display:block}
+
+.topbar{background:linear-gradient(135deg,#1a1040,#141b2d);border-radius:14px;padding:.5rem 1rem;display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem}
+.topbar .logo{font-weight:800;font-size:.9rem;background:linear-gradient(135deg,#a78bfa,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.topbar .spacer{flex:1}
+.topbar .ts-btn{background:transparent;border:1px solid #1e2a3a;color:#6b7280;padding:.15rem .5rem;border-radius:6px;cursor:pointer;font-size:.65rem}
+.topbar .ts-btn:hover{color:#a78bfa;border-color:#a78bfa}
+
+/* 班级卡片 */
+.class-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.6rem;margin-bottom:.8rem}
+.class-card{background:#141b2d;border:1px solid #1e2a3a;border-radius:16px;padding:1rem;cursor:pointer;transition:all .1s;position:relative}
+.class-card:hover{border-color:#a78bfa}
+.class-card.active{border-color:#a78bfa;background:#1a1040}
+.class-card .cc-name{font-size:.9rem;font-weight:700;color:#e0e6f0;margin-bottom:.15rem}
+.class-card .cc-id{font-size:.6rem;color:#6b7280;font-family:monospace;margin-bottom:.3rem}
+.class-card .cc-code{font-size:.65rem;color:#a78bfa;font-family:monospace;letter-spacing:2px;word-break:break-all}
+.class-card .cc-actions{position:absolute;top:8px;right:8px;display:flex;gap:2px}
+.class-card .cc-actions button{background:none;border:none;color:#6b7280;cursor:pointer;font-size:.5rem;padding:2px 5px;border-radius:4px}
+.class-card .cc-actions button:hover{color:#a78bfa;background:rgba(167,139,250,.1)}
+.class-card .cc-actions button.del:hover{color:#ef4444}
+.class-card .cc-link{display:block;margin-top:.3rem;font-size:.55rem;color:#6b7280;word-break:break-all;background:#0d1520;border-radius:6px;padding:.25rem .4rem}
+.class-card .cc-link button{background:none;border:none;color:#a78bfa;cursor:pointer;font-size:.5rem;text-decoration:underline}
+
+/* 呼叫面板 */
+.call-panel{background:#141b2d;border:1px solid #1e2a3a;border-radius:16px;padding:1rem;margin-bottom:.8rem;text-align:center}
+.call-panel .cp-status{font-size:.8rem;color:#6b7280;margin-bottom:.15rem}
+.call-panel .cp-name{font-size:1.8rem;font-weight:800;color:#a78bfa;display:none;margin:.2rem 0}
+.call-panel .cp-info{font-size:.7rem;color:#6b7280;display:none;margin-bottom:.3rem}
+.cp-input{display:flex;gap:.4rem;justify-content:center;flex-wrap:wrap;margin-top:.5rem}
+.cp-input input{flex:1;min-width:150px;max-width:250px;padding:.45rem .7rem;border-radius:10px;border:1.5px solid #1e2a3a;background:#0d1520;color:#e0e6f0;font-size:.85rem;outline:none}
+.cp-input input:focus{border-color:#a78bfa}
+.cp-btn{padding:.45rem 1.1rem;border-radius:10px;border:none;font-weight:700;font-size:.8rem;cursor:pointer}
+.cp-btn.s{background:linear-gradient(135deg,#a78bfa,#8b5cf6);color:#fff}
+.cp-btn.s:hover{opacity:.9}
+.cp-btn.c{background:transparent;border:1.5px solid #1e2a3a;color:#6b7280}
+.cp-btn.c:hover{color:#e0e6f0}
+
+/* 底部操作 */
+.actions{display:flex;gap:.5rem;flex-wrap:wrap}
+.act-btn{padding:.35rem .7rem;border-radius:8px;border:1px solid #1e2a3a;background:#141b2d;cursor:pointer;font-size:.65rem;color:#6b7280;transition:all .08s}
+.act-btn:hover{border-color:#a78bfa;color:#a78bfa}
+.act-btn.green{background:#14532d!important;border-color:#22c55e!important;color:#22c55e!important}
+
+/* 模态框 */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:2000;display:flex;align-items:center;justify-content:center}
+.modal-box{background:#141b2d;border:1px solid #1e2a3a;border-radius:18px;padding:1.2rem 1.5rem;width:340px;max-width:90vw;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+.modal-box h3{font-size:.9rem;color:#a78bfa;margin-bottom:.6rem;text-align:center}
+.modal-box label{display:block;font-size:.65rem;color:#6b7280;margin-bottom:.15rem;font-weight:600}
+.modal-box input{width:100%;padding:.4rem .6rem;border-radius:10px;border:1.5px solid #1e2a3a;background:#0d1520;color:#e0e6f0;font-size:.8rem;outline:none;margin-bottom:.4rem}
+.modal-box input:focus{border-color:#a78bfa}
+.modal-box .hint{font-size:.6rem;color:#6b7280;text-align:center;margin-bottom:.4rem}
+.modal-btns{display:flex;gap:.4rem;margin-top:.3rem}
+.modal-btns button{flex:1;padding:.4rem;border-radius:10px;border:none;font-weight:600;font-size:.75rem;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+<!-- 密码 -->
+<div class="pw-screen" id="pwScreen">
+<div class="icon">🔒</div>
+<h2>教师验证</h2>
+<p>首次使用请先设置密码</p>
+<input type="password" id="pwInput" placeholder="输入密码" style="letter-spacing:3px">
+<div class="err" id="pwErr"></div>
+<button class="pw-btn" id="pwBtn">确定</button>
+</div>
+
+<!-- 主界面 -->
+<div class="main" id="mainArea">
+<div class="topbar">
+<span class="logo">📞 教师端</span>
+<span class="spacer"></span>
+<button class="ts-btn" id="logoutBtn">🔒 锁定</button>
+</div>
+
+<div class="class-grid" id="classGrid"></div>
+
+<div class="call-panel" id="callPanel">
+<div class="cp-status" id="cpStatus">选择一个班级开始呼叫</div>
+<div class="cp-name" id="cpName">—</div>
+<div class="cp-info" id="cpInfo"></div>
+<div class="cp-input">
+<input type="text" id="cpInput" placeholder="学生姓名" disabled>
+<button class="cp-btn s" id="cpSend" disabled>呼叫</button>
+<button class="cp-btn c" id="cpClear" disabled>清除</button>
+</div>
+</div>
+
+<div class="actions">
+<button class="act-btn green" id="addClassBtn">➕ 添加班级</button>
+<button class="act-btn" id="changePwBtn">🔒 改密码</button>
+</div>
+</div>
+
+</div>
+<script>
+(function(){
+'use strict';
+var API = '/api/call';
+var KEY = '***';
+var PW_KEY = '***';
+
+var classes = JSON.parse(localStorage.getItem(KEY)||'null');
+if(!classes||!classes.length){ classes=[{id:Date.now()+'a',name:'我的班级',teacherName:'班主任'}]; localStorage.setItem(KEY,JSON.stringify(classes)); }
+var pw = localStorage.getItem(PW_KEY)||'';
+var activeId = '';
+var isSet = !!pw;
+
+function fmt(){var d=new Date();return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+':'+('0'+d.getSeconds()).slice(-2);}
+
+// ===== 密码 =====
+var pwScreen=document.getElementById('pwScreen');
+var mainArea=document.getElementById('mainArea');
+var pwInput=document.getElementById('pwInput');
+var pwErr=document.getElementById('pwErr');
+var pwBtn=document.getElementById('pwBtn');
+
+if(!isSet){ document.querySelector('.pw-screen p').textContent='首次使用，请设置教师密码'; pwBtn.textContent='设置密码'; }
+
+pwBtn.addEventListener('click', function(){
+  var v = pwInput.value.trim();
+  if(!isSet){
+    if(v.length<4){ pwErr.textContent='密码至少4位'; return; }
+    pw=v; localStorage.setItem(PW_KEY,v); isSet=true; pwScreen.style.display='none'; mainArea.classList.add('show'); init(); return;
+  }
+  if(v===pw){ pwScreen.style.display='none'; mainArea.classList.add('show'); init(); }
+  else { pwErr.textContent='❌ 密码错误'; pwInput.value=''; pwInput.focus(); }
+});
+pwInput.addEventListener('keydown',function(e){if(e.key==='Enter')pwBtn.click();});
+
+document.getElementById('logoutBtn').addEventListener('click',function(){mainArea.classList.remove('show');pwScreen.style.display='flex';pwInput.value='';pwInput.focus();});
+
+// ===== 初始化 =====
+function init(){
+  if(classes.length) activeId=classes[0].id;
+  renderGrid();
+  updateCallPanel();
+}
+
+// ===== 班级卡片 =====
+function renderGrid(){
+  var h='';
+  classes.forEach(function(c){
+    var act = c.id===activeId?' active':'';
+    var url = window.location.origin+'?connect='+c.id;
+    h += '<div class="class-card'+act+'" data-id="'+c.id+'">';
+    h += '<div class="cc-actions"><button class="del" data-id="'+c.id+'">🗑️</button></div>';
+    h += '<div class="cc-name">'+c.name+'</div>';
+    h += '<div class="cc-id">ID: '+c.id+'</div>';
+    h += '<div class="cc-code">👨‍🏫 '+(c.teacherName||'班主任')+'</div>';
+    h += '<div class="cc-link">'+url+' <button data-link="'+url+'">📋 复制</button></div>';
+    h += '</div>';
+  });
+  document.getElementById('classGrid').innerHTML = h;
+  // 点击卡片
+  document.querySelectorAll('.class-card').forEach(function(card){
+    card.addEventListener('click',function(e){
+      if(e.target.closest('.cc-actions')||e.target.closest('.cc-link')) return;
+      activeId=this.getAttribute('data-id');
+      renderGrid(); updateCallPanel();
+    });
+  });
+  // 复制链接
+  document.querySelectorAll('.cc-link button').forEach(function(btn){
+    btn.addEventListener('click',function(e){ e.stopPropagation();
+      var url=this.getAttribute('data-link');
+      navigator.clipboard.writeText(url).then(function(){
+        btn.textContent='✅'; setTimeout(function(){btn.textContent='📋 复制';},1500);
+      }).catch(function(){alert(url);});
+    });
+  });
+  // 删除
+  document.querySelectorAll('.cc-actions .del').forEach(function(btn){
+    btn.addEventListener('click',function(e){ e.stopPropagation();
+      var id=this.getAttribute('data-id');
+      if(classes.length<=1) return;
+      classes=classes.filter(function(c){return c.id!==id;});
+      localStorage.setItem(KEY,JSON.stringify(classes));
+      if(activeId===id){activeId=classes[0].id;}
+      renderGrid(); updateCallPanel();
+    });
+  });
+}
+
+// ===== 呼叫 =====
+var cpStatus=document.getElementById('cpStatus');
+var cpName=document.getElementById('cpName');
+var cpInfo=document.getElementById('cpInfo');
+var cpInput=document.getElementById('cpInput');
+var cpSend=document.getElementById('cpSend');
+var cpClear=document.getElementById('cpClear');
+
+function updateCallPanel(){
+  var cls = classes.find(function(c){return c.id===activeId;});
+  if(!cls){
+    cpStatus.textContent='选择一个班级开始呼叫';
+    cpInput.disabled=true; cpSend.disabled=true; cpClear.disabled=true;
+    return;
+  }
+  cpStatus.textContent='当前：'+cls.name+'（'+(cls.teacherName||'班主任')+'）';
+  cpInput.disabled=false; cpSend.disabled=false; cpClear.disabled=false;
+  cpInput.focus();
+}
+
+cpSend.addEventListener('click',function(){
+  var cls = classes.find(function(c){return c.id===activeId;});
+  if(!cls) return;
+  var n=cpInput.value.trim();
+  if(!n) return;
+  cpName.textContent=n; cpName.style.display='block';
+  cpStatus.textContent='📞 已发送';
+  cpInfo.textContent=fmt()+' · 请到'+(cls.teacherName||'班主任')+'办公室';
+  cpInfo.style.display='block';
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_room:activeId,name:n})}).catch(function(){});
+  cpInput.value=''; cpInput.focus();
+});
+cpClear.addEventListener('click',function(){
+  cpName.style.display='none'; cpInfo.style.display='none';
+  var cls = classes.find(function(c){return c.id===activeId;});
+  if(cls) cpStatus.textContent='当前：'+cls.name+'（'+(cls.teacherName||'班主任')+'）';
+  if(activeId) fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({_room:activeId,_clear:true})}).catch(function(){});
+});
+cpInput.addEventListener('keydown',function(e){if(e.key==='Enter')cpSend.click();});
+
+// ===== 添加班级 =====
+document.getElementById('addClassBtn').addEventListener('click',function(){
+  var ov=document.createElement('div');ov.className='modal-overlay';
+  ov.innerHTML='<div class="modal-box"><h3>➕ 添加班级</h3><label>班级名称</label><input type="text" id="newCls" placeholder="如：三年级一班"><div class="hint">系统自动生成班级ID，可分享到大屏</div><div class="modal-btns"><button id="ncCa" style="background:#1e2a3a;color:#6b7280">取消</button><button id="ncOk" style="background:#a78bfa;color:#fff">添加</button></div></div>';
+  document.body.appendChild(ov);
+  var inp=document.getElementById('newCls');inp.focus();
+  function cl(){document.body.removeChild(ov);}
+  document.getElementById('ncCa').onclick=cl;
+  document.getElementById('ncOk').onclick=function(){
+    var n=inp.value.trim();if(!n)return;
+    classes.push({id:Date.now()+Math.random().toString(36).slice(2,6),name:n,teacherName:'班主任'});
+    localStorage.setItem(KEY,JSON.stringify(classes));
+    activeId=classes[classes.length-1].id; cl(); renderGrid(); updateCallPanel();
+  };
+  inp.addEventListener('keydown',function(e){
+    if(e.key!=='Enter')return;
+    var n=inp.value.trim();if(!n)return;
+    classes.push({id:Date.now()+Math.random().toString(36).slice(2,6),name:n,teacherName:'班主任'});
+    localStorage.setItem(KEY,JSON.stringify(classes));
+    activeId=classes[classes.length-1].id; cl(); renderGrid(); updateCallPanel();
+  });
+});
+
+// ===== 改密码 =====
+document.getElementById('changePwBtn').addEventListener('click',function(){
+  var ov=document.createElement('div');ov.className='modal-overlay';
+  ov.innerHTML='<div class="modal-box"><h3>🔒 修改密码</h3><label>旧密码</label><input type="password" id="oldP" placeholder="输入旧密码"><label>新密码</label><input type="password" id="newP" placeholder="至少4位"><div class="modal-btns"><button id="pcCa" style="background:#1e2a3a;color:#6b7280">取消</button><button id="pcOk" style="background:#a78bfa;color:#fff">确定</button></div></div>';
+  document.body.appendChild(ov);
+  function cl(){document.body.removeChild(ov);}
+  document.getElementById('pcCa').onclick=cl;
+  document.getElementById('pcOk').onclick=function(){
+    if(document.getElementById('oldP').value!==pw){alert('❌ 旧密码错误');return;}
+    var n=document.getElementById('newP').value;if(n.length<4){alert('至少4位');return;}
+    pw=n;localStorage.setItem(PW_KEY,n);cl();alert('✅ 修改成功');
+  };
+});
+})();
+</script>
+</body>
+</html>
