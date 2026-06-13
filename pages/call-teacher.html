@@ -77,14 +77,27 @@ p{color:#6b7280;font-size:.75rem;margin-bottom:1rem}
 
 <script>
 // ===== 修复：改为相对路径，兼容子域名和主域名部署 =====
+// ===== 修复：改为相对路径，兼容子域名和主域名部署 =====
+// ===== 再修复：Vercel KV 未配置，改为纯客户端 localStorage 认证 =====
 var API = '/api/call';
 var AUTH_API = '/api/auth';
+var ACCOUNTS_KEY = '***';  // 存储所有本地账号
 
 function switchTab(t){
   document.getElementById('tabLogin').className = t==='login'?'on':'off';
   document.getElementById('tabReg').className = t==='reg'?'on':'off';
   document.getElementById('loginForm').style.display = t==='login'?'block':'none';
   document.getElementById('regForm').style.display = t==='reg'?'block':'none';
+}
+
+function getAccounts(){
+  var raw = localStorage.getItem(ACCOUNTS_KEY);
+  if(raw) try { return JSON.parse(raw); } catch(e) {}
+  return {};
+}
+
+function saveAccounts(acc){
+  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(acc));
 }
 
 function doReg(){
@@ -96,28 +109,64 @@ function doReg(){
   if(p.length<2){document.getElementById('rErr').textContent='用户名无效';return;}
   if(w.length<4){document.getElementById('rErr').textContent='密码至少4位';return;}
   if(!n||!c){document.getElementById('rErr').textContent='请填写完整';return;}
-  fetch(AUTH_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'register',phone:p,password:w,teacherName:n,teacherType:t,className:c})})
-    .then(function(r){return r.json();})
-    .then(function(d){
-      if(d.error){document.getElementById('rErr').textContent=d.error;return;}
-      localStorage.setItem('***',d.teacherCode);
-      d.data.teacherCode=d.teacherCode;localStorage.setItem('***',JSON.stringify(d.data));
-      location.reload();
-    }).catch(function(e){document.getElementById('rErr').textContent='网络错误';});
+
+  var accounts = getAccounts();
+  if(accounts[p]){
+    document.getElementById('rErr').textContent='该用户名已注册';
+    return;
+  }
+
+  var teacherCode = 'TCH' + Math.random().toString(36).slice(2, 7).toUpperCase();
+  var teacherData = {
+    phone: p,
+    password: w,
+    teacherCode: teacherCode,
+    teacherName: n,
+    teacherType: t,
+    classes: [{ id: Date.now() + 'a', name: c, teacherType: t }]
+  };
+
+  // 保存账号到本地
+  accounts[p] = teacherData;
+  saveAccounts(accounts);
+
+  // 设置当前登录用户
+  localStorage.setItem('***', teacherCode);
+  localStorage.setItem('***', JSON.stringify({
+    teacherCode: teacherCode,
+    teacherName: n,
+    teacherType: t,
+    classes: teacherData.classes
+  }));
+
+  location.reload();
 }
 
 function doLogin(){
   var p=document.getElementById('lPhone').value.trim();
   var w=document.getElementById('lPw').value;
   if(!p||!w){document.getElementById('lErr').textContent='请填写完整';return;}
-  fetch(AUTH_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',phone:p,password:w})})
-    .then(function(r){return r.json();})
-    .then(function(d){
-      if(d.error){document.getElementById('lErr').textContent=d.error;return;}
-      localStorage.setItem('***',d.teacherCode);
-      d.data.teacherCode=d.teacherCode;localStorage.setItem('***',JSON.stringify(d.data));
-      location.reload();
-    }).catch(function(e){document.getElementById('lErr').textContent='网络错误';});
+
+  var accounts = getAccounts();
+  var userData = accounts[p];
+  if(!userData){
+    document.getElementById('lErr').textContent='账号不存在';
+    return;
+  }
+  if(userData.password !== w){
+    document.getElementById('lErr').textContent='密码错误';
+    return;
+  }
+
+  localStorage.setItem('***', userData.teacherCode);
+  localStorage.setItem('***', JSON.stringify({
+    teacherCode: userData.teacherCode,
+    teacherName: userData.teacherName,
+    teacherType: userData.teacherType,
+    classes: userData.classes || []
+  }));
+
+  location.reload();
 }
 
 function copyCode(){
@@ -164,14 +213,27 @@ function showConnect(){
 function doConnect(){
   var code=document.getElementById('connectCode').value.trim().toUpperCase();
   if(!code){document.getElementById('connectErr').textContent='输入教师码';return;}
-  fetch(AUTH_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'lookup',code:code})})
-    .then(function(r){return r.json();})
-    .then(function(d){
-      if(d.error){document.getElementById('connectErr').textContent=d.error;return;}
-      document.getElementById('connectErr').textContent='✅ 已连接';
-      localStorage.setItem('***',JSON.stringify({teacherCode:d.teacherCode,teacherName:d.data.teacherName,teacherType:d.data.teacherType,classes:d.data.classes}));
-      location.reload();
-    }).catch(function(e){document.getElementById('connectErr').textContent='网络错误';});
+
+  var accounts = getAccounts();
+  var found = null;
+  for(var k in accounts){
+    if(accounts[k].teacherCode === code){
+      found = accounts[k];
+      break;
+    }
+  }
+  if(!found){
+    document.getElementById('connectErr').textContent='未找到该教师';
+    return;
+  }
+  document.getElementById('connectErr').textContent='✅ 已连接';
+  localStorage.setItem('***',JSON.stringify({
+    teacherCode: found.teacherCode,
+    teacherName: found.teacherName,
+    teacherType: found.teacherType,
+    classes: found.classes || []
+  }));
+  location.reload();
 }
 
 function logout(){
